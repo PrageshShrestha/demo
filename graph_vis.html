@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Git State Space Tree – Visual DFA-like Workflow</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    h1 { color: #111827; margin-bottom: 8px; }
+    #description {
+      max-width: 900px;
+      margin: 0 auto 30px;
+      color: #4b5563;
+      line-height: 1.6;
+    }
+    #network {
+      width: 100%;
+      height: 85vh;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .legend {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+    .legend span {
+      display: inline-block;
+      margin: 0 16px;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+  </style>
+
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1>Git Workflow State Space Tree</h1>
+    <p>Visual map of Git states and transitions (commands + common flags)</p>
+  </header>
+
+  <div id="description">
+    <p>This graph shows how a Git repository evolves:</p>
+    <ul style="max-width:800px; margin:0 auto;">
+      <li><strong>Blue</strong> → setup / empty repo</li>
+      <li><strong>Yellow</strong> → working directory changes / staging</li>
+      <li><strong>Green</strong> → committed / clean history</li>
+      <li><strong>Purple</strong> → branching / merging</li>
+      <li><strong>Red</strong> → undo, reset, revert, conflict, danger</li>
+      <li><strong>Orange</strong> → remote / push / pull</li>
+      <li><strong>Gray</strong> → special / detached / orphan states</li>
+    </ul>
+    <p>Zoom, pan, hover over nodes/edges for details. Double-click to recenter.</p>
+  </div>
+
+  <div id="network"></div>
+
+  <div class="legend">
+    <span style="background:#dbeafe;color:#1e40af">Setup / Empty</span>
+    <span style="background:#fef3c7;color:#92400e">Working / Staging</span>
+    <span style="background:#d1fae5;color:#065f46">Committed / Clean</span>
+    <span style="background:#ede9fe;color:#5b21b6">Branch / Merge</span>
+    <span style="background:#fee2e2;color:#991b1b">Undo / Conflict / Danger</span>
+    <span style="background:#ffedd5;color:#c2410c">Remote / Push / Pull</span>
+  </div>
+
+  <script>
+    const nodes = new vis.DataSet([
+      // ─── Setup ───────────────────────────────────────
+      {id:0,   label:"Start\n(No Repo)",                 shape:"dot",   color:"#9ca3af", size:22},
+      {id:1,   label:"Empty Repo\n(git init / clone)",   color:"#bfdbfe", group:"setup"},
+      {id:2,   label:"Shallow / Single-branch Clone",    color:"#bfdbfe", group:"setup"},
+
+      // ─── Working / Staging ───────────────────────────
+      {id:10,  label:"Has Untracked / Modified Files",   color:"#fef08a", group:"working"},
+      {id:11,  label:"Staged Changes\n(git add -A/-p/-u)", color:"#fde047", group:"working"},
+      {id:12,  label:"Dirty Index + Working Tree",       color:"#fef08a", group:"working"},
+
+      // ─── Committed ───────────────────────────────────
+      {id:20,  label:"Has Commits\nClean tree",          color:"#a7f3d0", group:"committed"},
+      {id:21,  label:"Amendable Commit\n(git commit --amend)", color:"#6ee7b7", group:"committed"},
+
+      // ─── Branching / Merging ─────────────────────────
+      {id:30,  label:"On main\n(git checkout main)",     color:"#e9d5ff", group:"branch"},
+      {id:31,  label:"On feature/hotfix\n(git checkout -b)", color:"#c084fc", group:"branch"},
+      {id:32,  label:"Merged (fast-forward)",            color:"#d8b4fe", group:"branch"},
+      {id:33,  label:"Merged (no-ff / squash)",          color:"#c084fc", group:"branch"},
+      {id:34,  label:"Merge Conflict",                   color:"#fca5a5", group:"danger"},
+
+      // ─── Undo / Danger ───────────────────────────────
+      {id:40,  label:"Reverted Commit\n(git revert)",    color:"#fecaca", group:"danger"},
+      {id:41,  label:"Reset (soft/hard)\nDanger zone",   color:"#f87171", group:"danger"},
+      {id:42,  label:"Detached HEAD",                    color:"#d1d5db", group:"special"},
+      {id:43,  label:"Orphan Branch",                    color:"#d1d5db", group:"special"},
+
+      // ─── Remote ──────────────────────────────────────
+      {id:50,  label:"Pushed / Tracked\n(git push -u)",  color:"#fed7aa", group:"remote"},
+      {id:51,  label:"Pulled / Rebases\n(git pull --rebase)", color:"#fdba74", group:"remote"},
+      {id:52,  label:"Remote branch deleted\n(git push --delete)", color:"#fca5a5", group:"danger"},
+    ]);
+
+    const edges = new vis.DataSet([
+      // Setup
+      {from:0, to:1,   label:"git init\n--bare / -b main / -q"},
+      {from:0, to:2,   label:"git clone\n--depth 1 / --single-branch / --bare"},
+
+      // Working → Staging
+      {from:1, to:10,  label:"create/modify files"},
+      {from:10,to:11,  label:"git add -A / -p / -u / -i / -f"},
+      {from:10,to:12,  label:"more changes without add"},
+
+      // Staging → Commit
+      {from:11,to:20,  label:"git commit -m / -a -m / -s"},
+      {from:20,to:21,  label:"git commit --amend"},
+
+      // Committed → Branching
+      {from:20,to:30,  label:"already on main"},
+      {from:20,to:31,  label:"git checkout -b feature / -B"},
+      {from:31,to:30,  label:"git checkout main"},
+      {from:30,to:32,  label:"git merge --ff-only feature"},
+      {from:30,to:33,  label:"git merge --no-ff / --squash feature"},
+      {from:30,to:34,  label:"git merge (conflict)"},
+
+      // Conflict resolution
+      {from:34,to:33,  label:"resolve + git add + git commit"},
+      {from:34,to:30,  label:"git merge --abort"},
+
+      // Undo paths
+      {from:20,to:40,  label:"git revert HEAD / commit-id"},
+      {from:20,to:41,  label:"git reset --soft / --hard HEAD~n"},
+      {from:20,to:42,  label:"git checkout <commit>"},
+      {from:42,to:43,  label:"git checkout --orphan new-branch"},
+      {from:42,to:30,  label:"git checkout main (recover)"},
+
+      // Remote
+      {from:20,to:50,  label:"git push -u origin main / --tags"},
+      {from:50,to:51,  label:"git pull --rebase / --ff-only"},
+      {from:50,to:52,  label:"git push --delete old-branch"},
+      {from:31,to:50,  label:"git push -u origin feature"},
+    ]);
+
+    const options = {
+      nodes: {
+        shape: "circle",
+        font: {size:13, face:"system-ui"},
+        borderWidth: 2,
+        shadow: true
+      },
+      edges: {
+        arrows: {to:{enabled:true, scaleFactor:0.8}},
+        font: {size:11, align:"middle"},
+        smooth: {type:"curvedCW", roundness:0.2},
+        color: {inherit:"from"}
+      },
+      layout: {
+        hierarchical: {
+          enabled: true,
+          direction: "UD",
+          sortMethod: "directed",
+          levelSeparation: 180,
+          nodeSpacing: 220,
+          treeSpacing: 280
+        }
+      },
+      physics: false,
+      interaction: {
+        hover: true,
+        tooltipDelay: 150,
+        navigationButtons: true,
+        keyboard: true,
+        zoomView: true
+      }
+    };
+
+    const container = document.getElementById("network");
+    const network = new vis.Network(container, {nodes, edges}, options);
+
+    network.once("stabilized", () => network.fit({animation:{duration:1200}}));
+    network.on("doubleClick", () => network.fit({animation:true}));
+  </script>
+</body>
+</html>
