@@ -115,14 +115,34 @@
         <section class="info-section">
             <div class="info-container">
                 <div class="info-card">
-                    <h3 class="info-title">Current Command</h3>
-                    <div id="commandInfo" class="command-info">
-                        <p class="command-description">
-                            <strong>git init</strong> creates a new Git repository. It creates a hidden .git directory 
-                            that contains all the necessary files and directories for Git to track changes.
-                        </p>
-                        <div class="command-syntax">
-                            <code>git init [directory-name]</code>
+                    <!-- Tab Navigation -->
+                    <div class="tab-nav">
+                        <button class="tab-btn active" data-tab="main">Main Command</button>
+                        <button class="tab-btn" data-tab="related">Related Commands</button>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Main Command Tab -->
+                        <div class="tab-pane active" id="main-tab">
+                            <h3 class="info-title">Current Command</h3>
+                            <div id="commandInfo" class="command-info">
+                                <p class="command-description">
+                                    <strong>git init</strong> creates a new Git repository. It creates a hidden .git directory 
+                                    that contains all the necessary files and directories for Git to track changes.
+                                </p>
+                                <div class="command-syntax">
+                                    <code>git init [directory-name]</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Related Commands Tab -->
+                        <div class="tab-pane" id="related-tab">
+                            <h3 class="info-title">Related Commands</h3>
+                            <div id="relatedCommands" class="related-commands">
+                                <!-- Related commands will be populated by JavaScript -->
+                            </div>
                         </div>
                     </div>
                 </div>

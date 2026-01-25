@@ -11,6 +11,7 @@ class GitVisualizer {
 
     init() {
         this.setupEventListeners();
+        this.setupTabEventListeners();
         this.renderNavigation();
         this.loadScene(0);
         this.updateProgress();
@@ -26,7 +27,44 @@ class GitVisualizer {
                 command: 'git init',
                 details: 'Creates a new Git repository. It creates a hidden .git directory that contains all the necessary files and directories for Git to track changes.',
                 syntax: 'git init [directory-name]',
-                render: () => this.renderGitInit()
+                render: () => this.renderGitInit(),
+                relatedCommands: [
+                    {
+                        command: 'git clone',
+                        description: 'Clone an existing repository',
+                        usage: 'Copy a remote repository to your local machine',
+                        syntax: 'git clone <url>',
+                        visualAid: 'Downloads entire repository with all history'
+                    },
+                    {
+                        command: 'git status',
+                        description: 'Check repository status',
+                        usage: 'See current state of files and branches',
+                        syntax: 'git status',
+                        visualAid: 'Shows working directory and staging area state'
+                    },
+                    {
+                        command: 'git config',
+                        description: 'Configure Git settings',
+                        usage: 'Set up user name and email for commits',
+                        syntax: 'git config --global user.name "Name"',
+                        visualAid: 'Sets configuration variables for Git behavior'
+                    },
+                    {
+                        command: 'git remote',
+                        description: 'Manage remote repositories',
+                        usage: 'Add or remove remote repository connections',
+                        syntax: 'git remote add origin <url>',
+                        visualAid: 'Links local repo to remote repository'
+                    },
+                    {
+                        command: 'git log --oneline',
+                        description: 'Show commit history briefly',
+                        usage: 'View condensed commit history',
+                        syntax: 'git log --oneline -5',
+                        visualAid: 'Displays commit hashes and messages in compact form'
+                    }
+                ]
             },
             {
                 id: 'git-add',
@@ -35,7 +73,44 @@ class GitVisualizer {
                 command: 'git add',
                 details: 'Adds files to the staging area, preparing them for the next commit. You can add specific files or use patterns.',
                 syntax: 'git add <file-pattern>',
-                render: () => this.renderGitAdd()
+                render: () => this.renderGitAdd(),
+                relatedCommands: [
+                    {
+                        command: 'git reset',
+                        description: 'Unstage files',
+                        usage: 'Remove files from staging area',
+                        syntax: 'git reset <file>',
+                        visualAid: 'Moves files from staging back to working directory'
+                    },
+                    {
+                        command: 'git restore',
+                        description: 'Restore working tree files',
+                        usage: 'Discard changes in working directory',
+                        syntax: 'git restore <file>',
+                        visualAid: 'Reverts files to last committed state'
+                    },
+                    {
+                        command: 'git diff',
+                        description: 'Show file differences',
+                        usage: 'See changes between commits or working tree',
+                        syntax: 'git diff --staged',
+                        visualAid: 'Displays line-by-line changes'
+                    },
+                    {
+                        command: 'git add -p',
+                        description: 'Add files interactively',
+                        usage: 'Stage changes in chunks',
+                        syntax: 'git add -p <file>',
+                        visualAid: 'Allows selective staging of changes'
+                    },
+                    {
+                        command: 'git clean',
+                        description: 'Remove untracked files',
+                        usage: 'Clean up working directory',
+                        syntax: 'git clean -fd',
+                        visualAid: 'Deletes untracked files and directories'
+                    }
+                ]
             },
             {
                 id: 'git-commit',
@@ -44,7 +119,44 @@ class GitVisualizer {
                 command: 'git commit',
                 details: 'Records changes to the repository. Creates a snapshot of the currently staged changes.',
                 syntax: 'git commit -m "Commit message"',
-                render: () => this.renderGitCommit()
+                render: () => this.renderGitCommit(),
+                relatedCommands: [
+                    {
+                        command: 'git commit --amend',
+                        description: 'Modify last commit',
+                        usage: 'Edit the most recent commit',
+                        syntax: 'git commit --amend -m "New message"',
+                        visualAid: 'Combines staged changes with last commit'
+                    },
+                    {
+                        command: 'git reset --soft',
+                        description: 'Undo last commit softly',
+                        usage: 'Keep changes staged but remove commit',
+                        syntax: 'git reset --soft HEAD~1',
+                        visualAid: 'Moves HEAD back but keeps changes staged'
+                    },
+                    {
+                        command: 'git revert',
+                        description: 'Revert a commit',
+                        usage: 'Create new commit that undoes changes',
+                        syntax: 'git revert <commit-hash>',
+                        visualAid: 'Creates inverse commit to cancel changes'
+                    },
+                    {
+                        command: 'git cherry-pick',
+                        description: 'Apply specific commit',
+                        usage: 'Apply commit from another branch',
+                        syntax: 'git cherry-pick <commit-hash>',
+                        visualAid: 'Copies specific commit to current branch'
+                    },
+                    {
+                        command: 'git rebase -i',
+                        description: 'Interactive rebase',
+                        usage: 'Rewrite multiple commits',
+                        syntax: 'git rebase -i HEAD~3',
+                        visualAid: 'Allows editing, reordering, or squashing commits'
+                    }
+                ]
             },
             {
                 id: 'git-status',
@@ -53,7 +165,44 @@ class GitVisualizer {
                 command: 'git status',
                 details: 'Shows the state of the working directory and staging area. Displays which changes are staged, unstaged, and untracked.',
                 syntax: 'git status',
-                render: () => this.renderGitStatus()
+                render: () => this.renderGitStatus(),
+                relatedCommands: [
+                    {
+                        command: 'git status -s',
+                        description: 'Short status format',
+                        usage: 'Get compact status output',
+                        syntax: 'git status -s',
+                        visualAid: 'Shows status in two-letter format'
+                    },
+                    {
+                        command: 'git status --ignored',
+                        description: 'Show ignored files',
+                        usage: 'Include ignored files in output',
+                        syntax: 'git status --ignored',
+                        visualAid: 'Displays files ignored by .gitignore'
+                    },
+                    {
+                        command: 'git ls-files',
+                        description: 'List tracked files',
+                        usage: 'Show all files in index',
+                        syntax: 'git ls-files',
+                        visualAid: 'Lists all files Git is tracking'
+                    },
+                    {
+                        command: 'git diff --name-only',
+                        description: 'Show changed files only',
+                        usage: 'List modified files without content',
+                        syntax: 'git diff --name-only',
+                        visualAid: 'Shows just filenames of changed files'
+                    },
+                    {
+                        command: 'git stash list',
+                        description: 'Show stashed changes',
+                        usage: 'List all stashed changes',
+                        syntax: 'git stash list',
+                        visualAid: 'Displays all saved stashes'
+                    }
+                ]
             },
             {
                 id: 'git-log',
@@ -62,7 +211,44 @@ class GitVisualizer {
                 command: 'git log',
                 details: 'Displays the commit history. Shows commit hashes, authors, dates, and commit messages.',
                 syntax: 'git log --oneline --graph',
-                render: () => this.renderGitLog()
+                render: () => this.renderGitLog(),
+                relatedCommands: [
+                    {
+                        command: 'git log --graph',
+                        description: 'Show commit graph',
+                        usage: 'Visualize branch structure',
+                        syntax: 'git log --graph --oneline',
+                        visualAid: 'Displays ASCII graph of branch merges'
+                    },
+                    {
+                        command: 'git log --grep',
+                        description: 'Search commit messages',
+                        usage: 'Find commits by message content',
+                        syntax: 'git log --grep "bug fix"',
+                        visualAid: 'Filters commits by message pattern'
+                    },
+                    {
+                        command: 'git log --author',
+                        description: 'Filter by author',
+                        usage: 'Show commits by specific author',
+                        syntax: 'git log --author "John"',
+                        visualAid: 'Displays commits from specific author'
+                    },
+                    {
+                        command: 'git log --since',
+                        description: 'Filter by date range',
+                        usage: 'Show commits within time period',
+                        syntax: 'git log --since "2 weeks ago"',
+                        visualAid: 'Filters commits by date criteria'
+                    },
+                    {
+                        command: 'git show',
+                        description: 'Show commit details',
+                        usage: 'Display specific commit information',
+                        syntax: 'git show <commit-hash>',
+                        visualAid: 'Shows detailed commit with changes'
+                    }
+                ]
             },
             {
                 id: 'git-branch',
@@ -71,7 +257,44 @@ class GitVisualizer {
                 command: 'git branch',
                 details: 'Lists, creates, or deletes branches. Branches allow you to develop features independently.',
                 syntax: 'git branch <branch-name>',
-                render: () => this.renderGitBranch()
+                render: () => this.renderGitBranch(),
+                relatedCommands: [
+                    {
+                        command: 'git branch -a',
+                        description: 'List all branches',
+                        usage: 'Show local and remote branches',
+                        syntax: 'git branch -a',
+                        visualAid: 'Displays all branch references'
+                    },
+                    {
+                        command: 'git branch -d',
+                        description: 'Delete branch',
+                        usage: 'Remove merged branch',
+                        syntax: 'git branch -d <branch-name>',
+                        visualAid: 'Safely deletes merged branches'
+                    },
+                    {
+                        command: 'git branch -m',
+                        description: 'Rename branch',
+                        usage: 'Change branch name',
+                        syntax: 'git branch -m <old-name> <new-name>',
+                        visualAid: 'Renames branch reference'
+                    },
+                    {
+                        command: 'git branch --merged',
+                        description: 'Show merged branches',
+                        usage: 'List branches that are merged',
+                        syntax: 'git branch --merged',
+                        visualAid: 'Shows branches safe to delete'
+                    },
+                    {
+                        command: 'git branch --no-merged',
+                        description: 'Show unmerged branches',
+                        usage: 'List branches with unique commits',
+                        syntax: 'git branch --no-merged',
+                        visualAid: 'Shows branches containing unique work'
+                    }
+                ]
             },
             {
                 id: 'git-checkout',
@@ -80,7 +303,44 @@ class GitVisualizer {
                 command: 'git checkout',
                 details: 'Switches between branches or restores working tree files. Also used for creating new branches.',
                 syntax: 'git checkout <branch-name>',
-                render: () => this.renderGitCheckout()
+                render: () => this.renderGitCheckout(),
+                relatedCommands: [
+                    {
+                        command: 'git switch',
+                        description: 'Switch branches',
+                        usage: 'Modern way to switch branches',
+                        syntax: 'git switch <branch-name>',
+                        visualAid: 'Moves HEAD to different branch'
+                    },
+                    {
+                        command: 'git checkout -b',
+                        description: 'Create and switch branch',
+                        usage: 'Make new branch and switch to it',
+                        syntax: 'git checkout -b <branch-name>',
+                        visualAid: 'Creates branch and moves HEAD'
+                    },
+                    {
+                        command: 'git checkout --',
+                        description: 'Restore files',
+                        usage: 'Discard changes to files',
+                        syntax: 'git checkout -- <file>',
+                        visualAid: 'Reverts files to last commit'
+                    },
+                    {
+                        command: 'git checkout <commit>',
+                        description: 'Checkout commit',
+                        usage: 'Go to specific commit',
+                        syntax: 'git checkout <commit-hash>',
+                        visualAid: 'Puts repo in detached HEAD state'
+                    },
+                    {
+                        command: 'git restore',
+                        description: 'Restore files',
+                        usage: 'Modern file restoration',
+                        syntax: 'git restore <file>',
+                        visualAid: 'Reverts working directory files'
+                    }
+                ]
             },
             {
                 id: 'git-merge',
@@ -89,7 +349,44 @@ class GitVisualizer {
                 command: 'git merge',
                 details: 'Merges changes from one branch into another. Combines the histories of two branches.',
                 syntax: 'git merge <branch-name>',
-                render: () => this.renderGitMerge()
+                render: () => this.renderGitMerge(),
+                relatedCommands: [
+                    {
+                        command: 'git merge --no-ff',
+                        description: 'No fast-forward merge',
+                        usage: 'Always create merge commit',
+                        syntax: 'git merge --no-ff <branch>',
+                        visualAid: 'Preserves branch history'
+                    },
+                    {
+                        command: 'git merge --squash',
+                        description: 'Squash merge',
+                        usage: 'Combine commits into one',
+                        syntax: 'git merge --squash <branch>',
+                        visualAid: 'Flattens branch into single commit'
+                    },
+                    {
+                        command: 'git merge --abort',
+                        description: 'Abort merge',
+                        usage: 'Cancel conflicted merge',
+                        syntax: 'git merge --abort',
+                        visualAid: 'Returns to pre-merge state'
+                    },
+                    {
+                        command: 'git mergetool',
+                        description: 'Launch merge tool',
+                        usage: 'Resolve conflicts visually',
+                        syntax: 'git mergetool',
+                        visualAid: 'Opens external merge resolution tool'
+                    },
+                    {
+                        command: 'git diff --name-only',
+                        description: 'Show conflicted files',
+                        usage: 'List files with conflicts',
+                        syntax: 'git diff --name-only --diff-filter=U',
+                        visualAid: 'Shows unmerged conflict files'
+                    }
+                ]
             },
             {
                 id: 'git-pull',
@@ -98,7 +395,44 @@ class GitVisualizer {
                 command: 'git pull',
                 details: 'Fetches changes from a remote repository and merges them into the current branch.',
                 syntax: 'git pull origin <branch-name>',
-                render: () => this.renderGitPull()
+                render: () => this.renderGitPull(),
+                relatedCommands: [
+                    {
+                        command: 'git fetch',
+                        description: 'Fetch changes only',
+                        usage: 'Download remote changes without merging',
+                        syntax: 'git fetch origin',
+                        visualAid: 'Updates remote tracking branches'
+                    },
+                    {
+                        command: 'git pull --rebase',
+                        description: 'Pull with rebase',
+                        usage: 'Rebase local commits on top of remote',
+                        syntax: 'git pull --rebase origin <branch>',
+                        visualAid: 'Linearizes commit history'
+                    },
+                    {
+                        command: 'git pull --no-ff',
+                        description: 'Pull without fast-forward',
+                        usage: 'Always create merge commit',
+                        syntax: 'git pull --no-ff origin <branch>',
+                        visualAid: 'Preserves branch structure'
+                    },
+                    {
+                        command: 'git log FETCH_HEAD',
+                        description: 'Show fetched changes',
+                        usage: 'Review changes before merging',
+                        syntax: 'git log FETCH_HEAD..HEAD',
+                        visualAid: 'Shows what will be merged'
+                    },
+                    {
+                        command: 'git merge FETCH_HEAD',
+                        description: 'Merge fetched changes',
+                        usage: 'Manual merge after fetch',
+                        syntax: 'git merge FETCH_HEAD',
+                        visualAid: 'Two-step pull process'
+                    }
+                ]
             },
             {
                 id: 'git-push',
@@ -107,7 +441,44 @@ class GitVisualizer {
                 command: 'git push',
                 details: 'Pushes local commits to a remote repository. Updates the remote with your changes.',
                 syntax: 'git push origin <branch-name>',
-                render: () => this.renderGitPush()
+                render: () => this.renderGitPush(),
+                relatedCommands: [
+                    {
+                        command: 'git push -u',
+                        description: 'Push and set upstream',
+                        usage: 'Push and link local to remote branch',
+                        syntax: 'git push -u origin <branch>',
+                        visualAid: 'Sets tracking relationship'
+                    },
+                    {
+                        command: 'git push --force',
+                        description: 'Force push',
+                        usage: 'Overwrite remote history',
+                        syntax: 'git push --force origin <branch>',
+                        visualAid: 'Rewrites remote branch history'
+                    },
+                    {
+                        command: 'git push --tags',
+                        description: 'Push tags',
+                        usage: 'Upload all tags to remote',
+                        syntax: 'git push --tags origin',
+                        visualAid: 'Sends annotated and lightweight tags'
+                    },
+                    {
+                        command: 'git push --delete',
+                        description: 'Delete remote branch',
+                        usage: 'Remove branch from remote',
+                        syntax: 'git push origin --delete <branch>',
+                        visualAid: 'Removes branch reference on remote'
+                    },
+                    {
+                        command: 'git log --oneline origin/main..HEAD',
+                        description: 'Show commits to push',
+                        usage: 'Review what will be pushed',
+                        syntax: 'git log --oneline origin/main..HEAD',
+                        visualAid: 'Shows commits ahead of remote'
+                    }
+                ]
             }
         ];
     }
@@ -145,6 +516,81 @@ class GitVisualizer {
         }
     }
 
+    setupTabEventListeners() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                this.switchTab(tabName);
+            });
+        });
+    }
+
+    switchTab(tabName) {
+        // Update button states
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+        });
+
+        // Update tab panes
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabPanes.forEach(pane => {
+            pane.classList.toggle('active', pane.id === `${tabName}-tab`);
+        });
+
+        // Load related commands when switching to related tab
+        if (tabName === 'related') {
+            this.renderRelatedCommands();
+        }
+    }
+
+    renderRelatedCommands() {
+        const scene = this.scenes[this.currentScene];
+        const relatedCommandsContainer = document.getElementById('relatedCommands');
+        
+        if (!scene.relatedCommands || !relatedCommandsContainer) {
+            relatedCommandsContainer.innerHTML = '<p class="text-muted">No related commands available for this command.</p>';
+            return;
+        }
+
+        const relatedCommandsHTML = scene.relatedCommands.map(cmd => `
+            <div class="related-command-item">
+                <div class="related-command-header">
+                    <span class="related-command-name">${cmd.command}</span>
+                </div>
+                <div class="related-command-description">${cmd.description}</div>
+                <div class="related-command-usage">${cmd.usage}</div>
+                <div class="related-command-syntax">${cmd.syntax}</div>
+                <div class="related-command-visual">
+                    <div class="visual-aid-icon">👁</div>
+                    <div class="visual-aid-text">${cmd.visualAid}</div>
+                </div>
+            </div>
+        `).join('');
+
+        relatedCommandsContainer.innerHTML = relatedCommandsHTML;
+
+        // Add click handlers to related command items
+        const relatedItems = relatedCommandsContainer.querySelectorAll('.related-command-item');
+        relatedItems.forEach(item => {
+            item.addEventListener('click', () => {
+                this.animateRelatedCommandClick(item);
+            });
+        });
+    }
+
+    animateRelatedCommandClick(item) {
+        gsap.to(item, {
+            scale: 0.98,
+            duration: 0.1,
+            yoyo: true,
+            repeat: 1,
+            ease: "power2.inOut"
+        });
+    }
+
     renderNavigation() {
         const navWrapper = document.querySelector('.nav-wrapper');
         navWrapper.innerHTML = '';
@@ -179,6 +625,9 @@ class GitVisualizer {
         const svg = document.getElementById('gitBoard');
         svg.innerHTML = '';
         scene.render();
+        
+        // Reset to main tab when loading new scene
+        this.switchTab('main');
         
         this.updateNavigation();
         this.updateProgress();
