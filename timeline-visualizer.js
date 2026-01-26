@@ -527,19 +527,20 @@ class TimelineVisualizer {
     }
 
     renderWorkingDirectory() {
-        const state = this.gitCore.getState();
+        const state = this.gitCore.currentState;
+        const branchState = this.gitCore.getCurrentBranchState();
         const workingFilesList = document.getElementById('working-files');
         const stagedFilesList = document.getElementById('staged-files');
         
         if (workingFilesList) {
             workingFilesList.innerHTML = '';
             
-            if (state.workingDirectory.length === 0) {
+            if (!branchState.workingDirectory || branchState.workingDirectory.length === 0) {
                 workingFilesList.innerHTML = '<div style="color:#666;padding:10px;text-align:center;">No files</div>';
             } else {
-                state.workingDirectory.forEach(file => {
+                branchState.workingDirectory.forEach(file => {
                     const li = document.createElement('li');
-                    li.className = `file-item ${this.gitCore.getFileTypeClass(file)}`;
+                    li.className = `file-item ${this.getFileTypeClass(file.name)}`;
                     li.innerHTML = `
                         <span class="file-icon">${this.getFileIcon(file.name)}</span>
                         <span style="flex:1">${file.name}</span>
@@ -549,48 +550,38 @@ class TimelineVisualizer {
                     workingFilesList.appendChild(li);
                 });
             }
-            
-            // Update count
-            const countElement = document.querySelector('#stage-working .file-count');
-            if (countElement) {
-                countElement.textContent = state.workingDirectory.length;
-            }
         }
         
         if (stagedFilesList) {
             stagedFilesList.innerHTML = '';
             
-            if (state.stagingArea.length === 0) {
+            if (!branchState.stagingArea || branchState.stagingArea.length === 0) {
                 stagedFilesList.innerHTML = '<div style="color:#666;padding:10px;text-align:center;">No staged files</div>';
             } else {
-                state.stagingArea.forEach(fileName => {
+                branchState.stagingArea.forEach(fileName => {
+                    const file = branchState.workingDirectory.find(f => f.name === fileName);
                     const li = document.createElement('li');
-                    li.className = 'file-item';
+                    li.className = `file-item ${this.getFileTypeClass(fileName)}`;
                     li.innerHTML = `
                         <span class="file-icon">${this.getFileIcon(fileName)}</span>
-                        ${fileName}
-                        <span style="color:#4ecdc4;margin-left:8px;">(ready to commit)</span>
+                        <span style="flex:1">${fileName}</span>
+                        <span style="color:#4ecdc4;font-size:0.8em;">✓ staged</span>
                     `;
                     stagedFilesList.appendChild(li);
                 });
-            }
-            
-            // Update count
-            const countElement = document.querySelector('#stage-staging .file-count');
-            if (countElement) {
-                countElement.textContent = state.stagingArea.length;
             }
         }
     }
 
     updateStages() {
-        const state = this.gitCore.getState();
+        const state = this.gitCore.currentState;
+        const branchState = this.gitCore.getCurrentBranchState();
         
         // Update all stages with counts
         const stages = [
-            { id: 'stage-working', element: document.getElementById('stage-working'), count: state.workingDirectory.length },
-            { id: 'stage-staging', element: document.getElementById('stage-staging'), count: state.stagingArea.length },
-            { id: 'stage-local', element: document.getElementById('stage-local'), count: state.commits.length },
+            { id: 'stage-working', element: document.getElementById('stage-working'), count: branchState.workingDirectory ? branchState.workingDirectory.length : 0 },
+            { id: 'stage-staging', element: document.getElementById('stage-staging'), count: branchState.stagingArea ? branchState.stagingArea.length : 0 },
+            { id: 'stage-local', element: document.getElementById('stage-local'), count: state.commits.size },
             { id: 'stage-remote', element: document.getElementById('stage-remote'), count: Object.keys(state.remotes).length }
         ];
         
@@ -1082,12 +1073,13 @@ class TimelineVisualizer {
         }
     }
 
-    getFileIcon(filename) {
-        if (filename.endsWith('.py')) return '🐍';
-        if (filename.includes('requirements')) return '📦';
-        if (filename.includes('config')) return '⚙️';
-        if (filename.includes('test')) return '🧪';
-        return '📄';
+    getFileTypeClass(fileName) {
+        if (fileName.endsWith('.py')) return 'python';
+        if (fileName.includes('requirements')) return 'requirements';
+        if (fileName.includes('config')) return 'config';
+        if (fileName.includes('test')) return 'test';
+        if (fileName.includes('README')) return 'markdown';
+        return 'default';
     }
 
     clearTerminal() {

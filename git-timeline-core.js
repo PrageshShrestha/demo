@@ -5,81 +5,54 @@ class GitTimelineCore {
         this.currentState = {
             isInitialized: false,
             currentBranch: 'master',
-            branches: {
-                master: {
-                    name: 'master',
-                    commits: [],
-                    head: null
-                }
-            },
-            commits: [],
-            workingDirectory: [
-                { name: 'main.py', type: 'python', staged: false, committed: false, content: '# Python main file' },
-                { name: 'utils.py', type: 'python', staged: false, committed: false, content: '# Utility functions' },
-                { name: 'requirements.txt', type: 'requirements', staged: false, committed: false, content: 'requests>=2.25.1' },
-                { name: 'config.py', type: 'config', staged: false, committed: false, content: 'DEBUG = True' },
-                { name: 'tests/test_main.py', type: 'test', staged: false, committed: false, content: 'import unittest' }
-            ],
-            stagingArea: [],
+            detachedHEAD: null,                    // commit hash when in detached state
+            branches: new Map([['master', null]]),   // branchName → head commit hash
+            branchStates: new Map(),               // branchName → {workingDirectory, stagingArea}
+            commits: new Map(),                    // hash → full commit object
+            reflog: [],                            // [{hash?, action, timestamp, oldHead?, message}]
             remotes: {},
             tags: [],
             mergeInProgress: false,
-            rebaseInProgress: false,
-            detachedHEAD: false
+            rebaseInProgress: false
         };
-        
         this.commitCounter = 0;
-        this.branchCounter = 1;
         this.commandHistory = [];
     }
 
-    // Command execution
     executeCommand(command) {
-        this.commandHistory.push({
-            command,
-            timestamp: new Date(),
-            stateBefore: JSON.parse(JSON.stringify(this.currentState))
-        });
-
-        const parts = command.split(' ');
+        this.commandHistory.push({ command, timestamp: new Date() });
+        const parts = command.trim().split(/\s+/);
         if (parts[0] !== 'git') {
-            return { success: false, output: `Command must start with 'git'` };
+            return { success: false, output: "Command must start with 'git'" };
         }
-
-        const gitCommand = parts[1];
+        const gitCmd = parts[1];
         const args = parts.slice(2);
 
-        switch(gitCommand) {
-            case 'init':
-                return this.handleInit(args);
-            case 'add':
-                return this.handleAdd(args);
-            case 'commit':
-                return this.handleCommit(args);
-            case 'branch':
-                return this.handleBranch(args);
-            case 'checkout':
-            case 'switch':
-                return this.handleSwitch(args);
-            case 'merge':
-                return this.handleMerge(args);
-            case 'status':
-                return this.handleStatus(args);
-            case 'log':
-                return this.handleLog(args);
-            case 'remote':
-                return this.handleRemote(args);
-            case 'push':
-                return this.handlePush(args);
-            case 'pull':
-                return this.handlePull(args);
-            case 'clone':
-                return this.handleClone(args);
-            case 'reset':
-                return this.handleReset(args);
-            default:
-                return { success: false, output: `Unknown command: ${gitCommand}` };
+        const handlers = {
+            init:    () => this.handleInit(args),
+            add:     () => this.handleAdd(args),
+            commit:  () => this.handleCommit(args),
+            branch:  () => this.handleBranch(args),
+            switch:  () => this.handleSwitch(args),
+            checkout:() => this.handleSwitch(args),
+            merge:   () => this.handleMerge(args),
+            status:  () => this.handleStatus(args),
+            log:     () => this.handleLog(args),
+            reflog:  () => this.handleReflog(),
+            reset:   () => this.handleReset(args),
+            rebase:  () => this.handleRebase(args),
+            remote:  () => this.handleRemote(args),
+            push:    () => this.handlePush(args),
+            pull:    () => this.handlePull(args),
+            clone:   () => this.handleClone(args),
+        };
+
+        const handler = handlers[gitCmd];
+        if (!handler) {
+            return { success: false, output: `git: '${gitCmd}' is not a git command.` };
         }
+
+        return handler();
     }
 
     handleInit(args) {
@@ -91,12 +64,25 @@ class GitTimelineCore {
         }
 
         this.currentState.isInitialized = true;
-        this.currentState.currentBranch = 'main';
-        this.currentState.branches.main = {
-            name: 'main',
-            commits: [],
-            head: null
-        };
+        this.currentState.currentBranch = 'master';
+        this.currentState.branches.set('master', null);
+        this.currentState.branchStates.set('master', {
+            workingDirectory: [
+                { name: 'main.py', type: 'python', staged: false, committed: false, content: '# Python main file\nprint("Hello World")' },
+                { name: 'utils.py', type: 'python', staged: false, committed: false, content: '# Utility functions\ndef helper():\n    pass' },
+                { name: 'requirements.txt', type: 'requirements', staged: false, committed: false, content: 'requests>=2.25.1\nflask>=2.0.0' },
+                { name: 'config.py', type: 'config', staged: false, committed: false, content: 'DEBUG = True\nPORT = 5000' },
+                { name: 'README.md', type: 'markdown', staged: false, committed: false, content: '# Project_👍\n\nA Python project with Git visualization.' },
+                { name: 'tests', type: 'dir', staged: false, committed: false, content: [] }
+            ],
+            stagingArea: []
+        });
+
+        this.currentState.reflog.push({
+            action: 'init',
+            timestamp: new Date(),
+            message: 'repository initialized'
+        });
 
         return { 
             success: true, 
@@ -106,112 +92,96 @@ class GitTimelineCore {
     }
 
     handleAdd(args) {
-        if (!this.currentState.isInitialized) {
-            return { 
-                success: false, 
-                output: 'fatal: not a git repository (or any parent directories)' 
-            };
-        }
+        if (!this.currentState.isInitialized) return { success: false, output: "fatal: not a git repository" };
 
-        if (args.length === 0) {
-            return { success: false, output: 'Nothing specified, nothing added.' };
-        }
+        const state = this.getCurrentBranchState();
+        const added = [];
 
-        const addedFiles = [];
         args.forEach(arg => {
             if (arg === '.') {
-                // Add all files
-                this.currentState.workingDirectory.forEach(file => {
-                    if (!file.staged) {
-                        file.staged = true;
-                        if (!this.currentState.stagingArea.includes(file.name)) {
-                            this.currentState.stagingArea.push(file.name);
-                        }
-                        addedFiles.push(file.name);
+                state.workingDirectory.forEach(f => {
+                    if (!f.staged && !state.stagingArea.includes(f.name)) {
+                        f.staged = true;
+                        state.stagingArea.push(f.name);
+                        added.push(f.name);
                     }
                 });
-            } else if (arg.endsWith('.py')) {
-                // Add specific Python file
-                const file = this.currentState.workingDirectory.find(f => f.name === arg);
+            } else {
+                const file = state.workingDirectory.find(f => f.name === arg);
                 if (file && !file.staged) {
                     file.staged = true;
-                    this.currentState.stagingArea.push(file.name);
-                    addedFiles.push(file.name);
+                    state.stagingArea.push(arg);
+                    added.push(arg);
                 }
             }
         });
 
-        return { 
-            success: true, 
-            output: addedFiles.length > 0 
-                ? `Added ${addedFiles.length} file(s) to staging area` 
-                : 'No files added',
-            stateChange: addedFiles.length > 0
+        return {
+            success: added.length > 0,
+            output: added.length ? `Added ${added.length} file(s) to staging area` : "nothing added",
+            stateChange: added.length > 0
         };
     }
 
     handleCommit(args) {
-        if (!this.currentState.isInitialized) {
-            return { 
-                success: false, 
-                output: 'fatal: not a git repository' 
-            };
+        if (!this.currentState.isInitialized) return { success: false, output: "fatal: not a git repository" };
+
+        const state = this.getCurrentBranchState();
+        if (state.stagingArea.length === 0) {
+            return { success: false, output: "nothing to commit, working tree clean" };
         }
 
-        if (this.currentState.stagingArea.length === 0) {
-            return { 
-                success: false, 
-                output: 'nothing to commit, working tree clean' 
-            };
-        }
+        let message = args.includes('-m') ? args[args.indexOf('-m') + 1] || "no message" : "no message";
 
-        // Extract commit message
-        let message = 'Update files';
-        if (args.includes('-m')) {
-            const msgIndex = args.indexOf('-m') + 1;
-            if (msgIndex < args.length) {
-                message = args[msgIndex].replace(/"/g, '');
-            }
-        }
+        const snapshot = state.workingDirectory.map(f => ({
+            name: f.name,
+            type: f.type,
+            content: f.content || "",
+            staged: false,
+            committed: true
+        }));
 
-        // Create commit
-        this.commitCounter++;
-        const commitHash = this.generateCommitHash();
+        const hash = this.generateCommitHash();
+        const currentHead = this.currentState.detachedHEAD || this.currentState.branches.get(this.currentState.currentBranch);
+        const parents = currentHead ? [currentHead] : [];
+
         const commit = {
-            hash: commitHash,
+            hash,
             message,
-            files: [...this.currentState.stagingArea],
+            parents,
             timestamp: new Date(),
             branch: this.currentState.currentBranch,
-            isMerge: false
+            isMerge: false,
+            snapshot,
+            filesChanged: state.stagingArea.length
         };
 
-        // Add to commits
-        this.currentState.commits.push(commit);
-        
-        // Update branch head
-        const currentBranch = this.currentState.branches[this.currentState.currentBranch];
-        if (currentBranch) {
-            currentBranch.commits.push(commitHash);
-            currentBranch.head = commitHash;
+        this.currentState.commits.set(hash, commit);
+
+        // Update head
+        if (this.currentState.detachedHEAD) {
+            this.currentState.detachedHEAD = hash;
+        } else {
+            this.currentState.branches.set(this.currentState.currentBranch, hash);
         }
 
-        // Clear staging area
-        this.currentState.stagingArea = [];
-        
-        // Update file states
-        this.currentState.workingDirectory.forEach(file => {
-            if (file.staged) {
-                file.staged = false;
-                file.committed = true;
-            }
+        // Clear staging, mark files committed
+        state.stagingArea = [];
+        state.workingDirectory.forEach(f => { f.staged = false; f.committed = true; });
+
+        this.currentState.reflog.push({
+            hash,
+            action: 'commit',
+            timestamp: new Date(),
+            oldHead: currentHead,
+            message
         });
 
-        return { 
-            success: true, 
-            output: `[${this.currentState.currentBranch} ${commitHash.substring(0, 7)}] ${message}`,
+        return {
+            success: true,
+            output: `[${this.currentState.currentBranch} ${hash.slice(0,7)}] ${message}`,
             stateChange: true,
-            commit: commit
+            commit
         };
     }
 
@@ -570,55 +540,64 @@ class GitTimelineCore {
     }
 
     // Helper methods
+    getCurrentBranchState() {
+        const key = this.currentState.detachedHEAD || this.currentState.currentBranch;
+        let s = this.currentState.branchStates.get(key);
+        if (!s) {
+            s = { workingDirectory: [], stagingArea: [] };
+            this.currentState.branchStates.set(key, s);
+        }
+        return s;
+    }
+
     generateCommitHash() {
-        return Math.random().toString(36).substring(2, 14);
+        return 'commit_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    }
+
+    resolveRef(ref) {
+        if (ref === 'HEAD') return this.currentState.detachedHEAD || this.currentState.branches.get(this.currentState.currentBranch);
+        if (this.currentState.branches.has(ref)) return this.currentState.branches.get(ref);
+        if (this.currentState.commits.has(ref)) return ref;
+        return null;
+    }
+
+    getAncestorHash(ref) {
+        // Simple implementation for HEAD~n
+        if (ref.startsWith('HEAD~')) {
+            const n = parseInt(ref.slice(5)) || 1;
+            let current = this.currentState.detachedHEAD || this.currentState.branches.get(this.currentState.currentBranch);
+            for (let i = 0; i < n && current; i++) {
+                const commit = this.currentState.commits.get(current);
+                if (!commit || !commit.parents[0]) break;
+                current = commit.parents[0];
+            }
+            return current;
+        }
+        return null;
     }
 
     getState() {
-        return JSON.parse(JSON.stringify(this.currentState));
+        return JSON.parse(JSON.stringify(this.currentState)); // for visualization
     }
 
     reset() {
         this.currentState = {
             isInitialized: false,
-            currentBranch: 'main',
-            branches: {
-                main: {
-                    name: 'main',
-                    commits: [],
-                    head: null
-                }
-            },
-            commits: [],
-            workingDirectory: [
-                { name: 'main.py', type: 'python', staged: false, committed: false, content: '# Python main file' },
-                { name: 'utils.py', type: 'python', staged: false, committed: false, content: '# Utility functions' },
-                { name: 'requirements.txt', type: 'requirements', staged: false, committed: false, content: 'requests>=2.25.1' },
-                { name: 'config.py', type: 'config', staged: false, committed: false, content: 'DEBUG = True' },
-                { name: 'tests/test_main.py', type: 'test', staged: false, committed: false, content: 'import unittest' }
-            ],
-            stagingArea: [],
+            currentBranch: 'master',
+            detachedHEAD: null,
+            branches: new Map([['master', null]]),
+            branchStates: new Map(),
+            commits: new Map(),
+            reflog: [],
             remotes: {},
             tags: [],
             mergeInProgress: false,
-            rebaseInProgress: false,
-            detachedHEAD: false
+            rebaseInProgress: false
         };
         this.commitCounter = 0;
-        this.branchCounter = 1;
         this.commandHistory = [];
     }
-
-    getFileTypeClass(file) {
-        if (file.name.endsWith('.py')) return 'python';
-        if (file.name.includes('requirements')) return 'requirements';
-        if (file.name.includes('config')) return 'config';
-        if (file.name.includes('test')) return 'test';
-        return 'default';
-    }
 }
 
-// Export for use in browser
-if (typeof window !== 'undefined') {
-    window.GitTimelineCore = GitTimelineCore;
-}
+// Export
+if (typeof window !== 'undefined') window.GitTimelineCore = GitTimelineCore;
