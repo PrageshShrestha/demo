@@ -1599,7 +1599,8 @@
                     return;
                 }
                 
-                // Only clear if this is the first render or if we have significantly different data
+                // Always redraw branch lines and edges to ensure they're visible
+                // Only clear if this is the first render
                 if (this.nodeElements.size === 0) {
                     this.clearVisualization();
                 }
@@ -1607,6 +1608,9 @@
                 // Group nodes by branch and calculate positions
                 const branchNodes = this.groupNodesByBranch(timelineData.nodes);
                 const nodePositions = this.calculateNodePositions(branchNodes);
+                
+                // Clear and redraw branch lines and edges to ensure visibility
+                this.clearBranchLinesAndEdges();
                 
                 // Draw branch lines first (background)
                 this.drawBranchLines(branchNodes, nodePositions);
@@ -1623,8 +1627,50 @@
                 // Add current HEAD indicator - use the new radio button HEAD tracking
                 this.drawHeadIndicator(timelineData.nodes, nodePositions);
                 
-                // Auto-center the view
-                setTimeout(() => this.centerView(), 100);
+                // Focus on the newest node instead of auto-centering
+                this.focusOnNewestNode(timelineData.nodes, nodePositions);
+            }
+            
+            clearBranchLinesAndEdges() {
+                if (!this.svg) return;
+                
+                // Remove all branch lines and labels
+                this.svg.querySelectorAll('[data-branch]').forEach(element => element.remove());
+                this.svg.querySelectorAll('[data-branch-label]').forEach(element => element.remove());
+                
+                // Remove all edge paths and groups
+                this.svg.querySelectorAll('path').forEach(element => element.remove());
+                this.svg.querySelectorAll('g').forEach(element => element.remove());
+                
+                // Clear edge elements tracking
+                this.edgeElements.clear();
+            }
+            
+            focusOnNewestNode(nodes, nodePositions) {
+                if (nodes.length === 0) return;
+                
+                // Find the newest node (most recent timestamp)
+                const newestNode = nodes.reduce((newest, node) => {
+                    return new Date(node.timestamp) > new Date(newest.timestamp) ? node : newest;
+                });
+                
+                const newestPos = nodePositions.get(newestNode.id);
+                if (!newestPos) return;
+                
+                // Calculate center position to show the newest node
+                const containerWidth = this.nodesContainer.clientWidth;
+                const containerHeight = this.nodesContainer.clientHeight;
+                
+                const centerX = newestPos.x - containerWidth / 2;
+                const centerY = newestPos.y - containerHeight / 2;
+                
+                // Apply smooth pan to center on newest node
+                setTimeout(() => {
+                    this.nodesContainer.style.transition = 'transform 0.5s ease';
+                    this.nodesContainer.style.transform = `translate(${-centerX}px, ${-centerY}px)`;
+                    this.svg.style.transition = 'transform 0.5s ease';
+                    this.svg.style.transform = `translate(${-centerX}px, ${-centerY}px)`;
+                }, 100);
             }
             
             showEmptyState() {
@@ -1721,49 +1767,42 @@
             
             calculateNodePositions(branchNodes) {
                 const positions = new Map();
-                let maxX = 50;
+                let globalMaxTime = 50; // Global time position for all branches
                 
-                // First, position main branch nodes (they start from left)
-                const mainBranchNodes = branchNodes.get('main') || [];
-                mainBranchNodes.forEach((node, index) => {
-                    const x = 50 + (index * this.commitSpacing);
-                    const y = this.getBranchYPosition('main');
-                    positions.set(node.id, { x, y, branch: 'main' });
-                    maxX = Math.max(maxX, x);
-                });
-                
-                // Then position other branches starting from their creation point
+                // Sort ALL nodes by timestamp to establish global time progression
+                const allNodes = [];
                 branchNodes.forEach((nodes, branchName) => {
-                    if (branchName === 'main') return; // Skip main, already positioned
-                    
-                    const y = this.getBranchYPosition(branchName);
-                    
-                    nodes.forEach((node, index) => {
-                        let x;
-                        
-                        if (node.type === 'branch' && node.data.branch === branchName) {
-                            // Branch creation node - position at current HEAD position
-                            const headPos = this.findHeadPosition(positions, branchNodes);
-                            x = headPos.x;
-                        } else {
-                            // Other nodes on this branch - continue from branch creation point
-                            const branchCreationNode = nodes.find(n => n.type === 'branch' && n.data.branch === branchName);
-                            if (branchCreationNode) {
-                                const creationPos = positions.get(branchCreationNode.id);
-                                x = creationPos.x + ((index - nodes.indexOf(branchCreationNode)) * this.commitSpacing);
-                            } else {
-                                // Fallback - position from left
-                                x = 50 + (index * this.commitSpacing);
-                            }
-                        }
-                        
-                        positions.set(node.id, { x, y, branch: branchName });
-                        maxX = Math.max(maxX, x);
+                    nodes.forEach(node => {
+                        allNodes.push({ node, branchName });
                     });
                 });
                 
-                this.currentX = maxX;
+                // Sort by timestamp to get chronological order
+                allNodes.sort((a, b) => new Date(a.node.timestamp) - new Date(b.node.timestamp));
+                
+                // Position nodes based on global time, not branch sequence
+                allNodes.forEach(({ node, branchName }, index) => {
+                    const timePosition = 50 + (index * this.commitSpacing);
+                    const y = this.getBranchYPosition(branchName);
+                    
+                    positions.set(node.id, { x: timePosition, y, branch: branchName });
+                    globalMaxTime = Math.max(globalMaxTime, timePosition);
+                });
+                
+                this.currentX = globalMaxTime;
                 return positions;
+            }
+            
+            getCurrentTimePosition(positions, branchNodes) {
+                // Find the rightmost position among all positioned nodes
+                let maxTimeX = 50;
+                
+                positions.forEach((pos) => {
+                    maxTimeX = Math.max(maxTimeX, pos.x);
+                });
+                
+                // Add spacing for the new node
+                return maxTimeX + this.commitSpacing;
             }
             
             findHeadPosition(positions, branchNodes) {
@@ -2071,15 +2110,15 @@
                         return;
                     }
                     
-                    // Skip switch nodes (only in timeline log)
-                    if (node.type === 'switch') {
-                        return;
-                    }
-                    
                     // Skip branch listing nodes (git branch without arguments)
                     if (node.type === 'branch' && !node.data.branch) {
                         return;
                     }
+                    
+                    // Allow switch nodes to be visible now
+                    // if (node.type === 'switch') {
+                    //     return;
+                    // }
                     
                     const pos = nodePositions.get(node.id);
                     if (!pos) return;
@@ -2282,30 +2321,44 @@
                 
                 // Find the node that has the HEAD flag (radio button behavior)
                 const headNode = nodes.find(node => node.is_head);
-                if (!headNode) return;
+                if (!headNode) {
+                    // If no HEAD found, try to get it from timeline
+                    const timelineHeadNode = window.gitProcessor ? window.gitProcessor.timeline.getHeadNode() : null;
+                    if (!timelineHeadNode) {
+                        console.log('No HEAD node found in timeline');
+                        return;
+                    }
+                    
+                    const headPos = nodePositions.get(timelineHeadNode.id);
+                    if (!headPos) return;
+                    
+                    // Create HEAD indicator for timeline HEAD node
+                    this.createHeadIndicatorElement(headPos, timelineHeadNode);
+                    return;
+                }
                 
                 const headPos = nodePositions.get(headNode.id);
                 if (!headPos) return;
                 
-                // Check for any errors in the last few terminal outputs
-                const terminalOutput = window.gitProcessor ? window.gitProcessor.getTerminalOutput() : [];
-                const recentOutputs = terminalOutput.slice(-3); // Check last 3 outputs
+                // Create HEAD indicator for found HEAD node
+                this.createHeadIndicatorElement(headPos, headNode);
+            }
+            
+            createHeadIndicatorElement(headPos, headNode) {
+                // Don't check for errors when showing HEAD - HEAD should always be visible
+                // regardless of command errors
                 
-                const hasRecentError = recentOutputs.some(output => 
-                    output.type === 'error' ||
-                    output.message.includes('nothing to commit') ||
-                    output.message.includes('fatal:') ||
-                    output.message.includes('error:')
-                );
-                
-                // Don't show HEAD if there's a recent error or no valid nodes
-                if (hasRecentError || this.nodeElements.size === 0) {
+                // Only don't show HEAD if there are no valid nodes
+                if (this.nodeElements.size === 0) {
                     return;
                 }
                 
                 // Get the DOM element for the HEAD node
                 const headNodeElement = this.nodeElements.get(headNode.id);
-                if (!headNodeElement) return;
+                if (!headNodeElement) {
+                    console.log('HEAD node element not found:', headNode.id);
+                    return;
+                }
                 
                 // Create HEAD indicator above the node
                 const headIndicator = document.createElement('div');
@@ -2320,15 +2373,17 @@
                     border-radius: 12px;
                     font-size: 10px;
                     font-weight: bold;
-                    z-index: 15;
+                    z-index: 1000;
                     transform: translateX(-50%);
                     box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
                     animation: pulse 2s infinite;
                     font-family: monospace;
+                    pointer-events: none;
                 `;
                 headIndicator.textContent = 'HEAD';
                 
                 this.nodesContainer.appendChild(headIndicator);
+                console.log('HEAD indicator created for node:', headNode.id, 'type:', headNode.type);
             }
             
             removeExistingHeadIndicators() {

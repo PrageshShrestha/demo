@@ -53,6 +53,7 @@ class GitTimeline {
         };
         this.nodeCounter = 0;
         this.currentBranch = 'main';
+        this.current_working_branch = 'main'; // Internal tracking for current working branch
     }
     
     // Generate realistic Git commit hash
@@ -73,8 +74,10 @@ class GitTimeline {
     
     // HEAD management methods - like radio button behavior
     setHead(nodeId) {
+        console.log('setHead called with nodeId:', nodeId);
+        
         // Clear HEAD flag from all nodes (radio button behavior)
-        this.nodes.forEach(node => {
+        this.nodes.forEach((node, id) => {
             node.is_head = false;
         });
         
@@ -82,7 +85,16 @@ class GitTimeline {
         if (this.nodes.has(nodeId)) {
             this.nodes.get(nodeId).is_head = true;
             this.head = nodeId;
+            console.log('HEAD set on node:', nodeId, 'Node type:', this.nodes.get(nodeId).type);
+        } else {
+            console.log('Node not found:', nodeId);
         }
+        
+        // Debug: Check all nodes for HEAD flags
+        console.log('All nodes HEAD status:');
+        this.nodes.forEach((node, id) => {
+            console.log(`Node ${id} (${node.type}): is_head = ${node.is_head}`);
+        });
     }
     
     getHeadNode() {
@@ -128,7 +140,9 @@ class GitTimeline {
             message: `Created branch ${branchName}`
         });
         
-        this.addEdge(sourceNodeId, branchNode.id, `git branch ${branchName}`);
+        // IMPORTANT: git branch does NOT create an edge because it doesn't move HEAD
+        // It just creates a branch pointer, not a state transition
+        // this.addEdge(sourceNodeId, branchNode.id, `git branch ${branchName}`);
         this.branches.set(branchName, branchNode.id);
         
         // IMPORTANT: git branch does NOT move HEAD - HEAD stays where it was
@@ -144,14 +158,26 @@ class GitTimeline {
         
         this.previousBranch = this.getCurrentBranch();
         
+        // Update internal working branch variable
+        this.current_working_branch = branchName;
+        
         // Find the latest node on the target branch
         const latestNodeOnBranch = this.findLatestNodeOnBranch(branchName);
+        let targetNodeId;
+        
         if (latestNodeOnBranch) {
+            targetNodeId = latestNodeOnBranch.id;
             this.setHead(latestNodeOnBranch.id);
         } else {
             // Fallback to branch creation point if no other nodes on branch
-            this.setHead(this.branches.get(branchName));
+            targetNodeId = this.branches.get(branchName);
+            this.setHead(targetNodeId);
         }
+        
+        console.log(`Switched working branch to: ${this.current_working_branch}`);
+        
+        // Return the target node ID for edge creation
+        return targetNodeId;
     }
     
     findLatestNodeOnBranch(branchName) {
@@ -164,22 +190,25 @@ class GitTimeline {
     }
 
     getCurrentBranch() {
-        // Find which branch has the HEAD node using the new radio button system
-        const headNode = this.getHeadNode();
-        if (!headNode) return 'main';
+        // Return the internal working branch variable for consistency
+        return this.current_working_branch;
         
-        // If HEAD is on a switch node, use the target branch from that switch
-        if (headNode.type === 'switch' && headNode.data.branch) {
-            return headNode.data.branch;
-        }
+        // Old logic - keep as fallback
+        // const headNode = this.getHeadNode();
+        // if (!headNode) return 'main';
         
-        // If HEAD is on a branch creation node, use that branch
-        if (headNode.type === 'branch' && headNode.data.branch) {
-            return headNode.data.branch;
-        }
+        // // If HEAD is on a switch node, use the target branch from that switch
+        // if (headNode.type === 'switch' && headNode.data.branch) {
+        //     return headNode.data.branch;
+        // }
         
-        // For all other nodes, use the branch property of the node
-        return headNode.branch || 'main';
+        // // If HEAD is on a branch creation node, use that branch
+        // if (headNode.type === 'branch' && headNode.data.branch) {
+        //     return headNode.data.branch;
+        // }
+        
+        // // For all other nodes, use the branch property of the node
+        // return headNode.branch || 'main';
     }
 
     getBranchHead(branchName) {

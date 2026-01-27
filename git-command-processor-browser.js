@@ -124,12 +124,14 @@ class GitCommandProcessor {
                     break;
                 case 'switch':
                     console.log('Handling switch');
-                    commandSuccess = await this.handleSwitch(parts);
+                    const targetNodeId = await this.handleSwitch(parts);
+                    commandSuccess = targetNodeId !== null; // Success if we got a target node
                     const targetBranch = parts[2]; // Get the target branch
                     commandData = { 
                         type: 'switch', 
                         message: 'Switched branch',
-                        branch: targetBranch // Store the target branch
+                        branch: targetBranch, // Store the target branch
+                        targetNodeId: targetNodeId // Store the target node ID for edge creation
                     };
                     break;
                 case 'merge':
@@ -178,20 +180,42 @@ class GitCommandProcessor {
                     commandSuccess = false;
             }
 
-            // Only add node if command was successful AND it's not a read-only command
-            if (commandSuccess !== false && !this.isReadOnlyCommand(mainCommand, parts)) {
+            // Check for recent errors in terminal output
+            const recentOutputs = this.getTerminalOutput().slice(-3);
+            const hasRecentError = recentOutputs.some(output => 
+                output.type === 'error' ||
+                output.message.includes('fatal:') ||
+                output.message.includes('error:') ||
+                output.message.includes('not a git command')
+            );
+
+            // Only add node if command was successful AND no recent errors AND it's not a read-only command
+            if (commandSuccess !== false && !hasRecentError && !this.isReadOnlyCommand(mainCommand, parts)) {
                 const commandNode = this.timeline.addNode(mainCommand, {
                     ...commandData,
                     command: trimmedCommand,
                     timestamp: new Date().toISOString()
                 });
 
-                if (this.timeline.head) {
-                    this.timeline.addEdge(this.timeline.head, commandNode.id, trimmedCommand);
+                // Create edge based on command type
+                if (mainCommand === 'switch' && commandData.targetNodeId) {
+                    // For switch commands: edge from current HEAD to target branch node
+                    if (this.timeline.head) {
+                        this.timeline.addEdge(this.timeline.head, commandData.targetNodeId, trimmedCommand);
+                    }
+                    // Set HEAD to the switch node (not the target branch node)
+                    this.timeline.setHead(commandNode.id);
+                } else {
+                    // For all other commands: edge from current HEAD to command node
+                    if (this.timeline.head) {
+                        this.timeline.addEdge(this.timeline.head, commandNode.id, trimmedCommand);
+                    }
+                    this.timeline.setHead(commandNode.id);
                 }
                 
-                this.timeline.setHead(commandNode.id);
                 console.log('Added node for successful command:', mainCommand);
+            } else if (hasRecentError) {
+                console.log('Skipping node creation due to error in command output');
             }
 
         } catch (error) {
@@ -218,7 +242,10 @@ class GitCommandProcessor {
         switch (mainCommand) {
             case 'branch':
                 // git branch (no arguments) lists branches - read-only
-                return parts.length === 2;
+                if (parts.length === 2) return true;
+                // git branch <name> creates branch but doesn't move HEAD - no node/edge needed
+                if (parts.length === 3 && !parts[2].startsWith('-')) return true;
+                return false;
             case 'status':
             case 'log':
             case 'show':
@@ -226,6 +253,12 @@ class GitCommandProcessor {
             case 'help':
             case '--help':
                 return true;
+            // Remote commands DO create nodes and change state
+            case 'remote':
+                // git remote (no args) lists remotes - read-only
+                if (parts.length === 2) return true;
+                // git remote add/origin etc - creates nodes
+                return false;
             default:
                 return false;
         }
@@ -401,14 +434,17 @@ class GitCommandProcessor {
                 const marker = branch === currentBranch ? '* ' : '  ';
                 this.addTerminalOutput(`${marker}${branch}`, 'info');
             });
+            return true; // Success, but read-only (no node creation)
         } else if (parts[2] === '-d' && parts[3]) {
             // Delete branch
             const branchName = parts[3];
             try {
                 this.timeline.deleteBranch(branchName);
                 this.addTerminalOutput(`Deleted branch ${branchName}`, 'success');
+                return true;
             } catch (error) {
                 this.addTerminalOutput(`error: ${error.message}`, 'error');
+                return false;
             }
         } else if (parts[2] === '-m' && parts[3] && parts[4]) {
             // Rename branch
@@ -417,61 +453,73 @@ class GitCommandProcessor {
             try {
                 this.timeline.renameBranch(oldName, newName);
                 this.addTerminalOutput(`Renamed branch ${oldName} to ${newName}`, 'success');
+                return true;
             } catch (error) {
                 this.addTerminalOutput(`error: ${error.message}`, 'error');
+                return false;
             }
         } else if (parts[2] && !parts[2].startsWith('-')) {
-            // Create new branch
+            // Create new branch - this should NOT create a command node
             const branchName = parts[2];
             try {
                 const branchNode = this.timeline.createBranch(branchName);
                 // Update session data with last branch name
                 this.updateSessionData('lastBranchName', branchName);
                 this.addTerminalOutput(`Created branch ${branchName}`, 'success');
+                // IMPORTANT: Return false to prevent command node creation in main processor
+                return false;
             } catch (error) {
                 this.addTerminalOutput(`error: ${error.message}`, 'error');
+                return false;
             }
         } else {
             this.addTerminalOutput('usage: git branch [-d] [-m old new] [branch-name]', 'error');
+            return false;
         }
     }
 
     async handleSwitch(parts) {
         if (parts.length < 3) {
             this.addTerminalOutput('usage: git switch <branch-name>', 'error');
-            return;
+            return null; // Return null to indicate no target node
         }
 
         const target = parts[2];
+        let targetNodeId = null;
 
         if (target === '-c' && parts[3]) {
             // Create and switch to new branch
             const branchName = parts[3];
             try {
                 const branchNode = this.timeline.createBranch(branchName);
-                this.timeline.switchToBranch(branchName);
+                targetNodeId = this.timeline.switchToBranch(branchName);
                 this.addTerminalOutput(`Switched to new branch ${branchName}`, 'success');
             } catch (error) {
                 this.addTerminalOutput(`error: ${error.message}`, 'error');
+                return null;
             }
         } else if (target === '~') {
             // Switch to previous branch
             if (this.timeline.previousBranch) {
                 const prevBranch = this.timeline.previousBranch;
-                this.timeline.switchToBranch(prevBranch);
+                targetNodeId = this.timeline.switchToBranch(prevBranch);
                 this.addTerminalOutput(`Switched to branch ${prevBranch}`, 'success');
             } else {
                 this.addTerminalOutput('error: no previous branch', 'error');
+                return null;
             }
         } else {
             // Switch to existing branch
             try {
-                this.timeline.switchToBranch(target);
+                targetNodeId = this.timeline.switchToBranch(target);
                 this.addTerminalOutput(`Switched to branch ${target}`, 'success');
             } catch (error) {
                 this.addTerminalOutput(`error: ${error.message}`, 'error');
+                return null;
             }
         }
+        
+        return targetNodeId; // Return the target node ID for edge creation
     }
 
     async handleMerge(parts) {
