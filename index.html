@@ -88,18 +88,6 @@
             opacity: 0.6;
         }
         
-        .timeline-line {
-            position: absolute;
-            top: 200px; /* Fixed center position */
-            left: 50px;
-            right: 50px;
-            height: 4px;
-            background: linear-gradient(90deg, #00b4db, #764ba2);
-            border-radius: 2px;
-            z-index: 1;
-            transition: right 0.5s ease;
-        }
-        
         .timeline-log-container {
             background: rgba(20, 30, 48, 0.6);
             border-radius: 15px;
@@ -833,6 +821,84 @@
         }
         
         /* Add more styles from the previous HTML file as needed */
+        
+        /* Git Graph Visualization Styles */
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .git-commit-node {
+            font-family: 'Segoe UI', monospace;
+        }
+        
+        .timeline-container {
+            position: relative;
+            height: 400px;
+            overflow: auto;
+            border-radius: 15px;
+            background: rgba(15, 25, 40, 0.3);
+            min-width: 800px;
+        }
+        
+        .branch-visualizer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: auto;
+            cursor: grab;
+        }
+        
+        .branch-visualizer:active {
+            cursor: grabbing;
+        }
+        
+        .commit-nodes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .commit-nodes .git-commit-node {
+            pointer-events: auto;
+        }
+        
+        .graph-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 5px;
+            background: rgba(20, 30, 48, 0.9);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        
+        .graph-control-btn {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .graph-control-btn:hover {
+            background: rgba(78, 205, 196, 0.3);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -850,9 +916,14 @@
 
         <div class="timeline-area">
             <div class="timeline-container">
-                <div class="timeline-line" id="main-timeline"></div>
                 <svg class="branch-visualizer" id="branch-visualizer" width="100%" height="100%"></svg>
                 <div class="commit-nodes" id="commit-nodes"></div>
+                <div class="graph-controls">
+                    <button class="graph-control-btn" onclick="zoomIn()">+</button>
+                    <button class="graph-control-btn" onclick="zoomOut()">−</button>
+                    <button class="graph-control-btn" onclick="resetZoom()">⟲</button>
+                    <button class="graph-control-btn" onclick="centerGraph()">⊙</button>
+                </div>
             </div>
             
             <div class="timeline-log-container">
@@ -924,7 +995,7 @@
                 
                 <!-- <div class="command-input-container">
                     <input type="text" id="git-command" placeholder="Enter Git command..." autocomplete="off">
-                    <button class="execute-btn" onclick="window.timelineVisualizer.executeCommand()">Execute</button>
+                    <button class="execute-btn" onclick="executeCommand()">Execute</button>
                 </div> -->
             </div>
             
@@ -1381,17 +1452,901 @@
         function updateTimeline() {
             const timelineData = window.gitProcessor.timeline.getTimelineData();
             
-            // Keep animation console sterile - no visualization
-            const commitNodes = document.getElementById('commit-nodes');
-            const branchVisualizer = document.getElementById('branch-visualizer');
-            
-            if (commitNodes) {
-                commitNodes.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-style: italic;">Animation Console - Sterile</div>';
+            // Update the animation console with Git branching visualization
+            renderGitGraph(timelineData);
+        }
+        
+        // Git Graph Visualization System
+        class GitGraphVisualizer {
+            constructor() {
+                this.svg = document.getElementById('branch-visualizer');
+                this.nodesContainer = document.getElementById('commit-nodes');
+                this.timelineContainer = document.querySelector('.timeline-container');
+                this.branchYPositions = new Map();
+                this.commitSpacing = 150;
+                this.branchSpacing = 80;
+                this.currentX = 50;
+                this.nodeElements = new Map();
+                this.edgeElements = new Map();
+                this.branchColors = {
+                    'main': '#4ecdc4',
+                    'master': '#4ecdc4', 
+                    'develop': '#ff6b6b',
+                    'feature': '#feca57',
+                    'hotfix': '#ff9ff3',
+                    'release': '#54a0ff',
+                    'remote': '#48dbfb'
+                };
+                
+                // Zoom and pan state
+                this.zoom = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.isDragging = false;
+                this.dragStartX = 0;
+                this.dragStartY = 0;
+                
+                this.initializeInteractions();
             }
             
-            if (branchVisualizer) {
-                branchVisualizer.innerHTML = '';
+            initializeInteractions() {
+                if (!this.svg) return;
+                
+                // Mouse wheel zoom
+                this.svg.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.setZoom(this.zoom * delta);
+                });
+                
+                // Mouse drag pan
+                this.svg.addEventListener('mousedown', (e) => {
+                    this.isDragging = true;
+                    this.dragStartX = e.clientX - this.panX;
+                    this.dragStartY = e.clientY - this.panY;
+                    this.svg.style.cursor = 'grabbing';
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (this.isDragging) {
+                        this.panX = e.clientX - this.dragStartX;
+                        this.panY = e.clientY - this.dragStartY;
+                        this.updateTransform();
+                    }
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    this.isDragging = false;
+                    this.svg.style.cursor = 'grab';
+                });
             }
+            
+            setZoom(newZoom) {
+                this.zoom = Math.min(Math.max(newZoom, 0.3), 3);
+                this.updateTransform();
+            }
+            
+            updateTransform() {
+                const transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+                if (this.svg) {
+                    this.svg.style.transform = transform;
+                }
+                if (this.nodesContainer) {
+                    this.nodesContainer.style.transform = transform;
+                }
+            }
+            
+            resetView() {
+                this.zoom = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.updateTransform();
+            }
+            
+            centerView() {
+                if (!this.timelineContainer) return;
+                
+                const containerRect = this.timelineContainer.getBoundingClientRect();
+                const contentWidth = this.currentX + 100;
+                const contentHeight = (this.branchYPositions.size * this.branchSpacing) + 200;
+                
+                // Calculate center offsets
+                this.panX = (containerRect.width - contentWidth * this.zoom) / 2;
+                this.panY = (containerRect.height - contentHeight * this.zoom) / 2;
+                
+                this.updateTransform();
+            }
+            
+            getBranchColor(branchName) {
+                // Generate color based on branch name hash for consistency
+                if (this.branchColors[branchName]) {
+                    return this.branchColors[branchName];
+                }
+                
+                let hash = 0;
+                for (let i = 0; i < branchName.length; i++) {
+                    hash = branchName.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                
+                const colors = ['#ff6b6b', '#feca57', '#ff9ff3', '#54a0ff', '#48dbfb', '#1dd1a1', '#ff6348', '#30336b'];
+                return colors[Math.abs(hash) % colors.length];
+            }
+            
+            getBranchYPosition(branchName) {
+                if (!this.branchYPositions.has(branchName)) {
+                    const index = this.branchYPositions.size;
+                    this.branchYPositions.set(branchName, 100 + (index * this.branchSpacing));
+                }
+                return this.branchYPositions.get(branchName);
+            }
+            
+            clearVisualization() {
+                if (this.svg) {
+                    this.svg.innerHTML = '';
+                }
+                if (this.nodesContainer) {
+                    this.nodesContainer.innerHTML = '';
+                }
+                this.nodeElements.clear();
+                this.edgeElements.clear();
+                this.branchYPositions.clear();
+                this.currentX = 50;
+            }
+            
+            render(timelineData) {
+                this.clearVisualization();
+                
+                if (!timelineData.nodes || timelineData.nodes.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+                
+                // Group nodes by branch and calculate positions
+                const branchNodes = this.groupNodesByBranch(timelineData.nodes);
+                const nodePositions = this.calculateNodePositions(branchNodes);
+                
+                // Draw branch lines first (background)
+                this.drawBranchLines(branchNodes, nodePositions);
+                
+                // Draw edges/connections
+                this.drawEdges(timelineData.edges, nodePositions);
+                
+                // Draw commit nodes
+                this.drawCommitNodes(timelineData.nodes, nodePositions);
+                
+                // Add current HEAD indicator - follow the actual timeline head
+                this.drawHeadIndicator(timelineData.head, nodePositions);
+                
+                // Auto-center the view
+                setTimeout(() => this.centerView(), 100);
+            }
+            
+            showEmptyState() {
+                if (this.nodesContainer) {
+                    this.nodesContainer.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; gap: 15px; padding: 40px;">
+                            <div style="font-size: 1.1em; color: #999; font-family: monospace;">
+                                Type "git init" to start
+                            </div>
+                            <div style="font-size: 0.9em; color: #aaa; text-align: center;">
+                                Git state machine visualization will appear here
+                            </div>
+                            <div style="font-size: 0.8em; color: #bbb; text-align: center; max-width: 300px;">
+                                Nodes show repository states • Edges show Git commands
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Add arrow marker definition to SVG
+                if (this.svg) {
+                    const svgNS = 'http://www.w3.org/2000/svg';
+                    const defs = document.createElementNS(svgNS, 'defs');
+                    
+                    const marker = document.createElementNS(svgNS, 'marker');
+                    marker.setAttribute('id', 'arrowhead');
+                    marker.setAttribute('markerWidth', '10');
+                    marker.setAttribute('markerHeight', '7');
+                    marker.setAttribute('refX', '9');
+                    marker.setAttribute('refY', '3.5');
+                    marker.setAttribute('orient', 'auto');
+                    
+                    const polygon = document.createElementNS(svgNS, 'polygon');
+                    polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+                    polygon.setAttribute('fill', '#666');
+                    
+                    marker.appendChild(polygon);
+                    defs.appendChild(marker);
+                    this.svg.appendChild(defs);
+                }
+            }
+            
+            groupNodesByBranch(nodes) {
+                const branchNodes = new Map();
+                let currentBranch = 'main'; // Default to main
+                
+                // Create a timeline of branch context changes
+                const branchTimeline = [];
+                
+                // Sort all nodes by timestamp first to ensure chronological processing
+                nodes.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                
+                nodes.forEach(node => {
+                    let branch = currentBranch;
+                    
+                    // Track branch context changes
+                    if (node.type === 'branch' && node.data.branch) {
+                        // Branch creation - creates new branch but doesn't switch to it
+                        branchTimeline.push({
+                            timestamp: node.timestamp,
+                            type: 'create_branch',
+                            branch: node.data.branch,
+                            currentBranch: currentBranch
+                        });
+                    }
+                    
+                    if (node.type === 'switch' && node.data.branch) {
+                        // Branch switch - changes current branch context
+                        currentBranch = node.data.branch;
+                        branchTimeline.push({
+                            timestamp: node.timestamp,
+                            type: 'switch_branch',
+                            branch: currentBranch,
+                            currentBranch: currentBranch
+                        });
+                    }
+                    
+                    // Determine which branch this node belongs to
+                    if (node.type === 'branch' && node.data.branch) {
+                        branch = node.data.branch; // Branch creation node belongs to its own branch
+                    } else if (node.type === 'switch') {
+                        branch = node.data.branch; // Switch node belongs to target branch
+                    } else {
+                        branch = currentBranch; // All other operations follow current branch
+                    }
+                    
+                    if (!branchNodes.has(branch)) {
+                        branchNodes.set(branch, []);
+                    }
+                    branchNodes.get(branch).push(node);
+                });
+                
+                // Final sort to ensure chronological order within each branch
+                branchNodes.forEach(nodes => {
+                    nodes.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                });
+                
+                return branchNodes;
+            }
+            
+            calculateNodePositions(branchNodes) {
+                const positions = new Map();
+                let maxX = 50;
+                
+                branchNodes.forEach((nodes, branchName) => {
+                    const y = this.getBranchYPosition(branchName);
+                    
+                    // Sort nodes by timestamp to ensure chronological order
+                    // Position nodes left to right in chronological order (already sorted)
+                    
+                    // Position nodes left to right in chronological order
+                    nodes.forEach((node, index) => {
+                        const x = 50 + (index * this.commitSpacing);
+                        positions.set(node.id, { x, y, branch: branchName });
+                        maxX = Math.max(maxX, x);
+                    });
+                    
+                    // Mark the rightmost node for each branch
+                    if (nodes.length > 0) {
+                        const lastNode = nodes[nodes.length - 1];
+                        positions.set(lastNode.id + '-rightmost', { 
+                            x: 50 + ((nodes.length - 1) * this.commitSpacing), 
+                            y, 
+                            branch: branchName,
+                            isRightmost: true 
+                        });
+                    }
+                });
+                
+                this.currentX = maxX + this.commitSpacing;
+                return positions;
+            }
+            
+            drawBranchLines(branchNodes, nodePositions) {
+                if (!this.svg) return;
+                
+                const svgNS = 'http://www.w3.org/2000/svg';
+                
+                branchNodes.forEach((nodes, branchName) => {
+                    if (nodes.length === 0) return;
+                    
+                    const y = this.getBranchYPosition(branchName);
+                    const color = this.getBranchColor(branchName);
+                    
+                    // Find the rightmost position for this branch
+                    let rightmostX = 50;
+                    for (const [nodeId, pos] of nodePositions.entries()) {
+                        if (pos.branch === branchName && pos.x > rightmostX) {
+                            rightmostX = pos.x;
+                        }
+                    }
+                    
+                    // Draw branch line from start to rightmost node
+                    const line = document.createElementNS(svgNS, 'line');
+                    line.setAttribute('x1', 30);
+                    line.setAttribute('y1', y);
+                    line.setAttribute('x2', rightmostX + 40); // Extend past last node
+                    line.setAttribute('y2', y);
+                    line.setAttribute('stroke', color);
+                    line.setAttribute('stroke-width', '3');
+                    line.setAttribute('opacity', '0.3');
+                    line.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    
+                    this.svg.appendChild(line);
+                    
+                    // Add branch label at the right end
+                    const text = document.createElementNS(svgNS, 'text');
+                    text.setAttribute('x', rightmostX + 45);
+                    text.setAttribute('y', y);
+                    text.setAttribute('text-anchor', 'start');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('fill', color);
+                    text.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    text.textContent = branchName;
+                    
+                    this.svg.appendChild(text);
+                });
+            }
+            
+            drawEdges(edges, nodePositions) {
+                if (!this.svg) return;
+                
+                const svgNS = 'http://www.w3.org/2000/svg';
+                
+                edges.forEach((edge, index) => {
+                    const fromPos = nodePositions.get(edge.from);
+                    const toPos = nodePositions.get(edge.to);
+                    
+                    if (!fromPos || !toPos) return;
+                    
+                    // Only draw edges for actual state changes, not for branch/switch operations
+                    if (edge.command && (edge.command.includes('branch') || edge.command.includes('switch'))) {
+                        return; // Skip branch and switch edges
+                    }
+                    
+                    // Create path for the edge
+                    const path = document.createElementNS(svgNS, 'path');
+                    
+                    // Calculate curved path
+                    const midX = (fromPos.x + toPos.x) / 2;
+                    const controlY = Math.min(fromPos.y, toPos.y) - 30;
+                    
+                    const d = `M ${fromPos.x} ${fromPos.y} Q ${midX} ${controlY} ${toPos.x} ${toPos.y}`;
+                    path.setAttribute('d', d);
+                    
+                    // Basic edge styling
+                    path.setAttribute('stroke', '#666');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('opacity', '0.8');
+                    path.style.cursor = 'pointer';
+                    
+                    // Add arrow marker
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    
+                    this.svg.appendChild(path);
+                    
+                    // Add command label only for important operations
+                    if (edge.command && (edge.command.includes('commit') || edge.command.includes('merge') || edge.command.includes('push') || edge.command.includes('pull'))) {
+                        const commandText = edge.command || 'transition';
+                        const displayText = this.truncateCommand(commandText, 15);
+                        
+                        // Add command label on the edge
+                        const text = document.createElementNS(svgNS, 'text');
+                        text.setAttribute('x', midX);
+                        text.setAttribute('y', controlY);
+                        text.setAttribute('text-anchor', 'middle');
+                        text.setAttribute('font-size', '10');
+                        text.setAttribute('font-family', 'monospace');
+                        text.setAttribute('fill', '#333');
+                        text.setAttribute('font-weight', 'bold');
+                        text.style.cursor = 'pointer';
+                        text.textContent = displayText;
+                        
+                        // Add background rectangle
+                        const rect = document.createElementNS(svgNS, 'rect');
+                        const bbox = text.getBBox();
+                        rect.setAttribute('x', bbox.x - 4);
+                        rect.setAttribute('y', bbox.y - 2);
+                        rect.setAttribute('width', bbox.width + 8);
+                        rect.setAttribute('height', bbox.height + 4);
+                        rect.setAttribute('fill', 'white');
+                        rect.setAttribute('stroke', '#ddd');
+                        rect.setAttribute('stroke-width', '1');
+                        rect.setAttribute('rx', '3');
+                        rect.style.cursor = 'pointer';
+                        
+                        // Add click interaction
+                        const edgeGroup = document.createElementNS(svgNS, 'g');
+                        edgeGroup.appendChild(rect);
+                        edgeGroup.appendChild(text);
+                        
+                        edgeGroup.dataset.fullCommand = commandText;
+                        edgeGroup.dataset.edgeId = edge.id;
+                        
+                        edgeGroup.addEventListener('click', () => {
+                            this.toggleEdgeDetails(edge.id, commandText, midX, controlY);
+                        });
+                        
+                        edgeGroup.addEventListener('mouseenter', () => {
+                            if (!this.activeEdgeDetails || this.activeEdgeDetails !== edge.id) {
+                                edgeGroup.title = commandText;
+                            }
+                        });
+                        
+                        this.svg.appendChild(edgeGroup);
+                        this.edgeElements.set(edge.id, { path, group: edgeGroup, text, rect });
+                    } else {
+                        this.edgeElements.set(edge.id, { path });
+                    }
+                });
+            }
+            
+            truncateCommand(command, maxLength) {
+                if (command.length <= maxLength) return command;
+                return command.substring(0, maxLength - 3) + '...';
+            }
+            
+            toggleEdgeDetails(edgeId, fullCommand, x, y) {
+                // Remove existing details if showing different edge
+                if (this.activeEdgeDetails && this.activeEdgeDetails !== edgeId) {
+                    this.removeEdgeDetails();
+                }
+                
+                // Toggle details for current edge
+                if (this.activeEdgeDetails === edgeId) {
+                    this.removeEdgeDetails();
+                } else {
+                    this.showEdgeDetails(edgeId, fullCommand, x, y);
+                }
+            }
+            
+            showEdgeDetails(edgeId, fullCommand, x, y) {
+                const svgNS = 'http://www.w3.org/2000/svg';
+                
+                // Create detailed text
+                const detailText = document.createElementNS(svgNS, 'text');
+                detailText.setAttribute('x', x);
+                detailText.setAttribute('y', y);
+                detailText.setAttribute('text-anchor', 'middle');
+                detailText.setAttribute('font-size', '11');
+                detailText.setAttribute('font-family', 'monospace');
+                detailText.setAttribute('fill', '#000');
+                detailText.setAttribute('font-weight', 'bold');
+                detailText.textContent = fullCommand;
+                
+                // Create background for detailed text
+                const bbox = detailText.getBBox();
+                const detailRect = document.createElementNS(svgNS, 'rect');
+                detailRect.setAttribute('x', bbox.x - 6);
+                detailRect.setAttribute('y', bbox.y - 3);
+                detailRect.setAttribute('width', bbox.width + 12);
+                detailRect.setAttribute('height', bbox.height + 6);
+                detailRect.setAttribute('fill', '#fff');
+                detailRect.setAttribute('stroke', '#333');
+                detailRect.setAttribute('stroke-width', '2');
+                detailRect.setAttribute('rx', '4');
+                
+                // Create group for details
+                const detailGroup = document.createElementNS(svgNS, 'g');
+                detailGroup.id = `edge-details-${edgeId}`;
+                detailGroup.appendChild(detailRect);
+                detailGroup.appendChild(detailText);
+                
+                this.svg.appendChild(detailGroup);
+                this.activeEdgeDetails = edgeId;
+            }
+            
+            removeEdgeDetails() {
+                if (this.activeEdgeDetails) {
+                    const detailElement = document.getElementById(`edge-details-${this.activeEdgeDetails}`);
+                    if (detailElement) {
+                        detailElement.remove();
+                    }
+                    this.activeEdgeDetails = null;
+                }
+            }
+            
+            drawCommitNodes(nodes, nodePositions) {
+                if (!this.nodesContainer) return;
+                
+                nodes.forEach(node => {
+                    // Skip switch nodes (only in timeline log)
+                    if (node.type === 'switch') {
+                        return;
+                    }
+                    
+                    // Skip branch listing nodes (git branch without arguments)
+                    if (node.type === 'branch' && !node.data.branch) {
+                        return;
+                    }
+                    
+                    const pos = nodePositions.get(node.id);
+                    if (!pos) return;
+                    
+                    const nodeElement = this.createCommitNode(node, pos);
+                    this.nodesContainer.appendChild(nodeElement);
+                    this.nodeElements.set(node.id, nodeElement);
+                    
+                    // Animate node appearance
+                    this.animateNodeAppearance(nodeElement);
+                });
+            }
+            
+            createCommitNode(node, position) {
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = `state-node ${node.type}`;
+                nodeDiv.style.cssText = `
+                    position: absolute;
+                    left: ${position.x}px;
+                    top: ${position.y}px;
+                    width: 80px;
+                    height: 40px;
+                    background: ${this.getStateColor(node.type)};
+                    border: 2px solid #333;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    transform: translate(-50%, -50%);
+                    z-index: 10;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    font-weight: bold;
+                    color: white;
+                    font-family: monospace;
+                    border-radius: 5px;
+                `;
+                
+                // Show state instead of command
+                let stateText = this.getStateText(node);
+                nodeDiv.textContent = stateText;
+                
+                // Add tooltip with detailed information
+                nodeDiv.title = this.getStateTooltip(node);
+                
+                // Add hover effects
+                nodeDiv.addEventListener('mouseenter', () => {
+                    nodeDiv.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                    nodeDiv.style.zIndex = '20';
+                    nodeDiv.style.borderColor = '#000';
+                    nodeDiv.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                });
+                
+                nodeDiv.addEventListener('mouseleave', () => {
+                    nodeDiv.style.transform = 'translate(-50%, -50%) scale(1)';
+                    nodeDiv.style.zIndex = '10';
+                    nodeDiv.style.borderColor = '#333';
+                    nodeDiv.style.boxShadow = 'none';
+                });
+                
+                // Add click handler for details
+                nodeDiv.addEventListener('click', () => {
+                    this.showStateDetails(node);
+                });
+                
+                return nodeDiv;
+            }
+            
+            getStateText(node) {
+                // Return state based on node type and data
+                switch (node.type) {
+                    case 'init':
+                        return 'REPO INIT';
+                    case 'add':
+                        return 'FILES STAGED';
+                    case 'commit':
+                        const hash = node.data.hash ? ` ${node.data.hash.substring(0, 7)}` : '';
+                        return `COMMITTED${hash}`;
+                    case 'branch':
+                        const branchName = node.data.branch || node.data.message || 'new';
+                        return `BRANCH: ${branchName}`;
+                    case 'switch':
+                        return 'SWITCHED';
+                    case 'merge':
+                        return 'MERGED';
+                    case 'push':
+                        return 'PUSHED';
+                    case 'pull':
+                        return 'PULLED';
+                    case 'clone':
+                        return 'CLONED';
+                    default:
+                        return node.type.toUpperCase();
+                }
+            }
+            
+            getStateColor(type) {
+                // Colors for different states
+                const colors = {
+                    'init': '#2ecc71',
+                    'add': '#f39c12',
+                    'commit': '#3498db',
+                    'branch': '#9b59b6',
+                    'switch': '#e67e22',
+                    'merge': '#e74c3c',
+                    'push': '#16a085',
+                    'pull': '#27ae60',
+                    'clone': '#2ecc71'
+                };
+                return colors[type] || '#95a5a6';
+            }
+            
+            getStateTooltip(node) {
+                let tooltip = `State: ${this.getStateText(node)}\n`;
+                if (node.branch) tooltip += `Branch: ${node.branch}\n`;
+                if (node.data.command) tooltip += `Command: ${node.data.command}\n`;
+                if (node.data.message) tooltip += `Message: ${node.data.message}\n`;
+                if (node.data.hash) tooltip += `Hash: ${node.data.hash}\n`;
+                tooltip += `Time: ${new Date(node.timestamp).toLocaleString()}`;
+                return tooltip;
+            }
+            
+            showStateDetails(node) {
+                const details = [
+                    `=== STATE: ${this.getStateText(node)} ===`,
+                    `Branch: ${node.branch}`,
+                    `Command: ${node.data.command || 'N/A'}`,
+                    `Message: ${node.data.message || 'No message'}`,
+                    `Time: ${new Date(node.timestamp).toLocaleString()}`
+                ];
+                
+                if (node.data.hash) {
+                    details.push(`Hash: ${node.data.hash}`);
+                }
+                
+                if (window.gitProcessor) {
+                    details.forEach(detail => {
+                        window.gitProcessor.addTerminalOutput(detail, 'info');
+                    });
+                }
+                
+                // Highlight the node temporarily
+                this.highlightNode(node.id);
+            }
+            
+            getNodeColor(type) {
+                const colors = {
+                    'init': 'linear-gradient(135deg, #4CAF50, #45a049)',
+                    'commit': 'linear-gradient(135deg, #ff6b6b, #ff5252)',
+                    'branch': 'linear-gradient(135deg, #54a0ff, #2e86de)',
+                    'merge': 'linear-gradient(135deg, #ff9ff3, #ee5a6f)',
+                    'push': 'linear-gradient(135deg, #feca57, #ff9ff3)',
+                    'pull': 'linear-gradient(135deg, #48dbfb, #0abde3)',
+                    'clone': 'linear-gradient(135deg, #1dd1a1, #10ac84)',
+                    'switch': 'linear-gradient(135deg, #a55eea, #8854d0)'
+                };
+                return colors[type] || 'linear-gradient(135deg, #636e72, #2d3436)';
+            }
+            
+            getNodeIcon(type) {
+                const icons = {
+                    'init': '🆕',
+                    'commit': '📝',
+                    'branch': '🌿',
+                    'merge': '🔀',
+                    'push': '⬆️',
+                    'pull': '⬇️',
+                    'clone': '📥',
+                    'switch': '🔄'
+                };
+                return icons[type] || '📍';
+            }
+            
+            getNodeTooltip(node) {
+                const time = new Date(node.timestamp).toLocaleString();
+                const hash = node.data.hash ? ` (${node.data.hash.substring(0, 7)})` : '';
+                return `${node.type.toUpperCase()}${hash}\n${node.data.message || 'No message'}\nBranch: ${node.branch}\n${time}`;
+            }
+            
+            animateNodeAppearance(nodeElement) {
+                nodeElement.style.transform = 'translate(-50%, -50%) scale(0)';
+                nodeElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    nodeElement.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    nodeElement.style.transform = 'translate(-50%, -50%) scale(1)';
+                    nodeElement.style.opacity = '1';
+                }, 50);
+            }
+            
+            drawHeadIndicator(headNodeId, nodePositions) {
+                if (!headNodeId) return;
+                
+                const headPos = nodePositions.get(headNodeId);
+                if (!headPos) return;
+                
+                // Check for any errors in the last few terminal outputs
+                const terminalOutput = window.gitProcessor ? window.gitProcessor.getTerminalOutput() : [];
+                const recentOutputs = terminalOutput.slice(-3); // Check last 3 outputs
+                
+                const hasRecentError = recentOutputs.some(output => 
+                    output.type === 'error' ||
+                    output.message.includes('nothing to commit') ||
+                    output.message.includes('fatal:') ||
+                    output.message.includes('error:')
+                );
+                
+                // Don't show HEAD if there's a recent error or no valid nodes
+                if (hasRecentError || this.nodeElements.size === 0) {
+                    return;
+                }
+                
+                // Only show HEAD for actual state nodes (init, add, commit, merge, push, pull, clone)
+                // NOT for branch nodes (branch creation doesn't move HEAD)
+                const headNode = this.nodeElements.get(headNodeId);
+                if (!headNode) return;
+                
+                const nodeType = headNode.className.includes(' ') ? 
+                    headNode.className.split(' ')[1] : 
+                    headNode.className;
+                
+                // Don't show HEAD on branch nodes (branch creation doesn't move HEAD)
+                if (nodeType === 'branch') {
+                    return;
+                }
+                
+                // Create HEAD indicator above the node
+                const headIndicator = document.createElement('div');
+                headIndicator.style.cssText = `
+                    position: absolute;
+                    left: ${headPos.x}px;
+                    top: ${headPos.y - 35}px;
+                    background: #FFD700;
+                    color: #333;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    z-index: 15;
+                    transform: translateX(-50%);
+                    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+                    animation: pulse 2s infinite;
+                    font-family: monospace;
+                `;
+                headIndicator.textContent = 'HEAD';
+                
+                this.nodesContainer.appendChild(headIndicator);
+            }
+            
+            showNodeDetails(node) {
+                const details = [
+                    `=== ${node.type.toUpperCase()} NODE ===`,
+                    `Command: ${node.data.command || 'N/A'}`,
+                    `Message: ${node.data.message || 'No message'}`,
+                    `Branch: ${node.branch}`,
+                    `Time: ${new Date(node.timestamp).toLocaleString()}`
+                ];
+                
+                if (node.data.hash) {
+                    details.push(`Hash: ${node.data.hash}`);
+                }
+                
+                if (window.gitProcessor) {
+                    details.forEach(detail => {
+                        window.gitProcessor.addTerminalOutput(detail, 'info');
+                    });
+                }
+                
+                // Highlight the node temporarily
+                this.highlightNode(node.id);
+            }
+            
+            showEdgeDetails(edge) {
+                const details = [
+                    `=== EDGE CONNECTION ===`,
+                    `Command: ${edge.command || 'Connection'}`,
+                    `From: ${edge.from}`,
+                    `To: ${edge.to}`,
+                    `Type: ${edge.data.type || 'standard'}`
+                ];
+                
+                if (window.gitProcessor) {
+                    details.forEach(detail => {
+                        window.gitProcessor.addTerminalOutput(detail, 'info');
+                    });
+                }
+                
+                // Highlight the edge temporarily
+                this.highlightEdge(edge.id);
+            }
+            
+            highlightNode(nodeId) {
+                const nodeElement = this.nodeElements.get(nodeId);
+                if (nodeElement) {
+                    const originalBorder = nodeElement.style.borderColor;
+                    const originalTransform = nodeElement.style.transform;
+                    
+                    nodeElement.style.borderColor = '#ff0000';
+                    nodeElement.style.transform = 'translate(-50%, -50%) scale(1.3)';
+                    nodeElement.style.zIndex = '30';
+                    
+                    setTimeout(() => {
+                        nodeElement.style.borderColor = originalBorder;
+                        nodeElement.style.transform = originalTransform;
+                        nodeElement.style.zIndex = '10';
+                    }, 2000);
+                }
+            }
+            
+            highlightEdge(edgeId) {
+                const edgeElement = this.edgeElements.get(edgeId);
+                if (edgeElement) {
+                    const originalStroke = edgeElement.getAttribute('stroke');
+                    const originalWidth = edgeElement.getAttribute('stroke-width');
+                    const originalOpacity = edgeElement.getAttribute('opacity');
+                    
+                    edgeElement.setAttribute('stroke', '#ff0000');
+                    edgeElement.setAttribute('stroke-width', parseInt(originalWidth) + 2);
+                    edgeElement.setAttribute('opacity', '1');
+                    
+                    setTimeout(() => {
+                        edgeElement.setAttribute('stroke', originalStroke);
+                        edgeElement.setAttribute('stroke-width', originalWidth);
+                        edgeElement.setAttribute('opacity', originalOpacity);
+                    }, 2000);
+                }
+            }
+            
+            highlightConnectedEdges(nodeId, highlight) {
+                // Find and highlight edges connected to this node
+                this.edgeElements.forEach((edgeElement, edgeId) => {
+                    const edge = this.findEdgeById(edgeId);
+                    if (edge && (edge.from === nodeId || edge.to === nodeId)) {
+                        if (highlight) {
+                            edgeElement.setAttribute('opacity', '1');
+                            edgeElement.setAttribute('stroke-width', parseInt(edgeElement.getAttribute('stroke-width')) + 1);
+                        } else {
+                            edgeElement.setAttribute('opacity', '0.7');
+                            edgeElement.setAttribute('stroke-width', parseInt(edgeElement.getAttribute('stroke-width')) - 1);
+                        }
+                    }
+                });
+            }
+            
+            findEdgeById(edgeId) {
+                // This would need access to timeline data - simplified version
+                return { from: '', to: '' }; // Placeholder
+            }
+            
+            focusOnNode(nodeId) {
+                const nodeElement = this.nodeElements.get(nodeId);
+                if (nodeElement) {
+                    // Center the view on this node
+                    const nodeRect = nodeElement.getBoundingClientRect();
+                    const containerRect = this.timelineContainer.getBoundingClientRect();
+                    
+                    // Calculate pan to center node
+                    const targetX = containerRect.width / 2 - (nodeRect.left + nodeRect.width / 2) + containerRect.left;
+                    const targetY = containerRect.height / 2 - (nodeRect.top + nodeRect.height / 2) + containerRect.top;
+                    
+                    // Smooth pan to node
+                    this.panX = targetX;
+                    this.panY = targetY;
+                    this.updateTransform();
+                    
+                    // Highlight the node
+                    this.highlightNode(nodeId);
+                }
+            }
+        }
+        
+        // Initialize Git graph visualizer
+        const gitGraphVisualizer = new GitGraphVisualizer();
+        
+        function renderGitGraph(timelineData) {
+            gitGraphVisualizer.render(timelineData);
         }
         
         function addTimelineInteractivity() {
@@ -1666,6 +2621,31 @@
             if (window.gitProcessor) {
                 window.gitProcessor.clearTerminalOutput();
                 updateTerminal();
+            }
+        }
+        
+        // Graph control functions
+        function zoomIn() {
+            if (gitGraphVisualizer) {
+                gitGraphVisualizer.setZoom(gitGraphVisualizer.zoom * 1.2);
+            }
+        }
+        
+        function zoomOut() {
+            if (gitGraphVisualizer) {
+                gitGraphVisualizer.setZoom(gitGraphVisualizer.zoom * 0.8);
+            }
+        }
+        
+        function resetZoom() {
+            if (gitGraphVisualizer) {
+                gitGraphVisualizer.resetView();
+            }
+        }
+        
+        function centerGraph() {
+            if (gitGraphVisualizer) {
+                gitGraphVisualizer.centerView();
             }
         }
     </script>
