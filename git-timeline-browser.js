@@ -8,6 +8,7 @@ class GitNode {
         this.timestamp = new Date().toISOString();
         this.branch = data.branch || 'main';
         this.color = this.getNodeColor(type);
+        this.is_head = false; // HEAD tracking flag - like a radio button
     }
 
     getNodeColor(type) {
@@ -69,6 +70,35 @@ class GitTimeline {
     getShortHash(fullHash) {
         return fullHash.substring(0, 7);
     }
+    
+    // HEAD management methods - like radio button behavior
+    setHead(nodeId) {
+        // Clear HEAD flag from all nodes (radio button behavior)
+        this.nodes.forEach(node => {
+            node.is_head = false;
+        });
+        
+        // Set HEAD flag on the specified node
+        if (this.nodes.has(nodeId)) {
+            this.nodes.get(nodeId).is_head = true;
+            this.head = nodeId;
+        }
+    }
+    
+    getHeadNode() {
+        // Find the node that has HEAD flag
+        for (const [nodeId, node] of this.nodes.entries()) {
+            if (node.is_head) {
+                return node;
+            }
+        }
+        return null;
+    }
+    
+    getHeadNodeId() {
+        const headNode = this.getHeadNode();
+        return headNode ? headNode.id : null;
+    }
 
     generateNodeId() {
         return `node_${++this.nodeCounter}`;
@@ -87,10 +117,6 @@ class GitTimeline {
         return edge;
     }
 
-    setHead(nodeId) {
-        this.head = nodeId;
-    }
-
     createBranch(branchName, fromNodeId = null) {
         const sourceNodeId = fromNodeId || this.head;
         if (!sourceNodeId) {
@@ -105,6 +131,9 @@ class GitTimeline {
         this.addEdge(sourceNodeId, branchNode.id, `git branch ${branchName}`);
         this.branches.set(branchName, branchNode.id);
         
+        // IMPORTANT: git branch does NOT move HEAD - HEAD stays where it was
+        // Don't call setHead here - let the command processor handle HEAD changes
+        
         return branchNode;
     }
 
@@ -114,16 +143,43 @@ class GitTimeline {
         }
         
         this.previousBranch = this.getCurrentBranch();
-        this.setHead(this.branches.get(branchName));
+        
+        // Find the latest node on the target branch
+        const latestNodeOnBranch = this.findLatestNodeOnBranch(branchName);
+        if (latestNodeOnBranch) {
+            this.setHead(latestNodeOnBranch.id);
+        } else {
+            // Fallback to branch creation point if no other nodes on branch
+            this.setHead(this.branches.get(branchName));
+        }
+    }
+    
+    findLatestNodeOnBranch(branchName) {
+        // Find all nodes on this branch and return the most recent one
+        const branchNodes = Array.from(this.nodes.values())
+            .filter(node => node.branch === branchName)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        return branchNodes.length > 0 ? branchNodes[0] : null;
     }
 
     getCurrentBranch() {
-        for (const [branchName, nodeId] of this.branches.entries()) {
-            if (nodeId === this.head) {
-                return branchName;
-            }
+        // Find which branch has the HEAD node using the new radio button system
+        const headNode = this.getHeadNode();
+        if (!headNode) return 'main';
+        
+        // If HEAD is on a switch node, use the target branch from that switch
+        if (headNode.type === 'switch' && headNode.data.branch) {
+            return headNode.data.branch;
         }
-        return null;
+        
+        // If HEAD is on a branch creation node, use that branch
+        if (headNode.type === 'branch' && headNode.data.branch) {
+            return headNode.data.branch;
+        }
+        
+        // For all other nodes, use the branch property of the node
+        return headNode.branch || 'main';
     }
 
     getBranchHead(branchName) {
@@ -216,8 +272,12 @@ class GitTimeline {
     }
 
     getTimelineData() {
+        // Sort nodes by timestamp to ensure chronological order
+        const sortedNodes = Array.from(this.nodes.values())
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
         return {
-            nodes: Array.from(this.nodes.values()),
+            nodes: sortedNodes,
             edges: Array.from(this.edges.values()),
             head: this.head,
             branches: Object.fromEntries(this.branches),

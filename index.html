@@ -1594,11 +1594,14 @@
             }
             
             render(timelineData) {
-                this.clearVisualization();
-                
                 if (!timelineData.nodes || timelineData.nodes.length === 0) {
                     this.showEmptyState();
                     return;
+                }
+                
+                // Only clear if this is the first render or if we have significantly different data
+                if (this.nodeElements.size === 0) {
+                    this.clearVisualization();
                 }
                 
                 // Group nodes by branch and calculate positions
@@ -1608,14 +1611,17 @@
                 // Draw branch lines first (background)
                 this.drawBranchLines(branchNodes, nodePositions);
                 
+                // Update branch line styles based on current branch
+                this.updateBranchLineStyles();
+                
                 // Draw edges/connections
                 this.drawEdges(timelineData.edges, nodePositions);
                 
-                // Draw commit nodes
-                this.drawCommitNodes(timelineData.nodes, nodePositions);
+                // Draw only new commit nodes (incremental rendering)
+                this.drawNewCommitNodes(timelineData.nodes, nodePositions);
                 
-                // Add current HEAD indicator - follow the actual timeline head
-                this.drawHeadIndicator(timelineData.head, nodePositions);
+                // Add current HEAD indicator - use the new radio button HEAD tracking
+                this.drawHeadIndicator(timelineData.nodes, nodePositions);
                 
                 // Auto-center the view
                 setTimeout(() => this.centerView(), 100);
@@ -1668,10 +1674,9 @@
                 // Create a timeline of branch context changes
                 const branchTimeline = [];
                 
-                // Sort all nodes by timestamp first to ensure chronological processing
-                nodes.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                // Nodes are already sorted chronologically from getTimelineData
                 
-                nodes.forEach(node => {
+                nodes.forEach((node, index) => {
                     let branch = currentBranch;
                     
                     // Track branch context changes
@@ -1711,11 +1716,6 @@
                     branchNodes.get(branch).push(node);
                 });
                 
-                // Final sort to ensure chronological order within each branch
-                branchNodes.forEach(nodes => {
-                    nodes.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                });
-                
                 return branchNodes;
             }
             
@@ -1723,33 +1723,63 @@
                 const positions = new Map();
                 let maxX = 50;
                 
+                // First, position main branch nodes (they start from left)
+                const mainBranchNodes = branchNodes.get('main') || [];
+                mainBranchNodes.forEach((node, index) => {
+                    const x = 50 + (index * this.commitSpacing);
+                    const y = this.getBranchYPosition('main');
+                    positions.set(node.id, { x, y, branch: 'main' });
+                    maxX = Math.max(maxX, x);
+                });
+                
+                // Then position other branches starting from their creation point
                 branchNodes.forEach((nodes, branchName) => {
+                    if (branchName === 'main') return; // Skip main, already positioned
+                    
                     const y = this.getBranchYPosition(branchName);
                     
-                    // Sort nodes by timestamp to ensure chronological order
-                    // Position nodes left to right in chronological order (already sorted)
-                    
-                    // Position nodes left to right in chronological order
                     nodes.forEach((node, index) => {
-                        const x = 50 + (index * this.commitSpacing);
+                        let x;
+                        
+                        if (node.type === 'branch' && node.data.branch === branchName) {
+                            // Branch creation node - position at current HEAD position
+                            const headPos = this.findHeadPosition(positions, branchNodes);
+                            x = headPos.x;
+                        } else {
+                            // Other nodes on this branch - continue from branch creation point
+                            const branchCreationNode = nodes.find(n => n.type === 'branch' && n.data.branch === branchName);
+                            if (branchCreationNode) {
+                                const creationPos = positions.get(branchCreationNode.id);
+                                x = creationPos.x + ((index - nodes.indexOf(branchCreationNode)) * this.commitSpacing);
+                            } else {
+                                // Fallback - position from left
+                                x = 50 + (index * this.commitSpacing);
+                            }
+                        }
+                        
                         positions.set(node.id, { x, y, branch: branchName });
                         maxX = Math.max(maxX, x);
                     });
-                    
-                    // Mark the rightmost node for each branch
-                    if (nodes.length > 0) {
-                        const lastNode = nodes[nodes.length - 1];
-                        positions.set(lastNode.id + '-rightmost', { 
-                            x: 50 + ((nodes.length - 1) * this.commitSpacing), 
-                            y, 
-                            branch: branchName,
-                            isRightmost: true 
-                        });
-                    }
                 });
                 
-                this.currentX = maxX + this.commitSpacing;
+                this.currentX = maxX;
                 return positions;
+            }
+            
+            findHeadPosition(positions, branchNodes) {
+                // Find the current HEAD position (rightmost node on current branch)
+                let headX = 50;
+                let headY = this.getBranchYPosition('main');
+                
+                // Look for the rightmost node that should be the HEAD
+                for (const [nodeId, pos] of positions.entries()) {
+                    if (pos.x > headX) {
+                        headX = pos.x;
+                        headY = pos.y;
+                    }
+                }
+                
+                return { x: headX, y: headY };
             }
             
             drawBranchLines(branchNodes, nodePositions) {
@@ -1763,39 +1793,114 @@
                     const y = this.getBranchYPosition(branchName);
                     const color = this.getBranchColor(branchName);
                     
+                    let startX = 30;
+                    
+                    // For non-main branches, start line from branch creation point
+                    if (branchName !== 'main') {
+                        const branchCreationNode = nodes.find(n => n.type === 'branch' && n.data.branch === branchName);
+                        if (branchCreationNode) {
+                            const creationPos = nodePositions.get(branchCreationNode.id);
+                            if (creationPos) {
+                                startX = creationPos.x;
+                            }
+                        }
+                    }
+                    
                     // Find the rightmost position for this branch
-                    let rightmostX = 50;
+                    let rightmostX = startX;
                     for (const [nodeId, pos] of nodePositions.entries()) {
                         if (pos.branch === branchName && pos.x > rightmostX) {
                             rightmostX = pos.x;
                         }
                     }
                     
-                    // Draw branch line from start to rightmost node
+                    // Check if branch line already exists
+                    const existingLine = this.svg.querySelector(`[data-branch="${branchName}"]`);
+                    if (existingLine) {
+                        // Update existing line to extend further if needed
+                        existingLine.setAttribute('x2', rightmostX + 40);
+                        return;
+                    }
+                    
+                    // Draw new branch line from start to rightmost node
                     const line = document.createElementNS(svgNS, 'line');
-                    line.setAttribute('x1', 30);
+                    line.setAttribute('data-branch', branchName); // Mark for future updates
+                    line.setAttribute('x1', startX);
                     line.setAttribute('y1', y);
                     line.setAttribute('x2', rightmostX + 40); // Extend past last node
                     line.setAttribute('y2', y);
-                    line.setAttribute('stroke', color);
-                    line.setAttribute('stroke-width', '3');
-                    line.setAttribute('opacity', '0.3');
-                    line.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    
+                    // Set branch line style based on whether it's the current branch
+                    const currentBranch = window.gitProcessor ? window.gitProcessor.timeline.getCurrentBranch() : 'main';
+                    const isCurrentBranch = branchName === currentBranch;
+                    
+                    if (isCurrentBranch) {
+                        // Current branch: full color, visible
+                        line.setAttribute('stroke', color);
+                        line.setAttribute('stroke-width', '3');
+                        line.setAttribute('opacity', '0.6');
+                        line.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    } else {
+                        // Non-current branch: grey, less visible
+                        line.setAttribute('stroke', '#666');
+                        line.setAttribute('stroke-width', '2');
+                        line.setAttribute('opacity', '0.2');
+                        line.style.filter = 'none';
+                    }
                     
                     this.svg.appendChild(line);
                     
                     // Add branch label at the right end
                     const text = document.createElementNS(svgNS, 'text');
+                    text.setAttribute('data-branch-label', branchName);
                     text.setAttribute('x', rightmostX + 45);
                     text.setAttribute('y', y);
                     text.setAttribute('text-anchor', 'start');
                     text.setAttribute('font-size', '12');
-                    text.setAttribute('font-weight', 'bold');
-                    text.setAttribute('fill', color);
-                    text.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    text.setAttribute('font-weight', isCurrentBranch ? 'bold' : 'normal');
+                    text.setAttribute('fill', isCurrentBranch ? color : '#999');
+                    text.style.filter = isCurrentBranch ? `drop-shadow(0 0 3px ${color})` : 'none';
                     text.textContent = branchName;
                     
                     this.svg.appendChild(text);
+                });
+            }
+            
+            updateBranchLineStyles() {
+                if (!this.svg) return;
+                
+                const currentBranch = window.gitProcessor ? window.gitProcessor.timeline.getCurrentBranch() : 'main';
+                
+                // Update all branch lines
+                document.querySelectorAll('[data-branch]').forEach(line => {
+                    const branchName = line.getAttribute('data-branch');
+                    const color = this.getBranchColor(branchName);
+                    const isCurrentBranch = branchName === currentBranch;
+                    
+                    if (isCurrentBranch) {
+                        // Current branch: full color, visible
+                        line.setAttribute('stroke', color);
+                        line.setAttribute('stroke-width', '3');
+                        line.setAttribute('opacity', '0.6');
+                        line.style.filter = `drop-shadow(0 0 3px ${color})`;
+                    } else {
+                        // Non-current branch: grey, less visible
+                        line.setAttribute('stroke', '#666');
+                        line.setAttribute('stroke-width', '2');
+                        line.setAttribute('opacity', '0.2');
+                        line.style.filter = 'none';
+                    }
+                });
+                
+                // Update all branch labels
+                document.querySelectorAll('[data-branch-label]').forEach(text => {
+                    const branchName = text.getAttribute('data-branch-label');
+                    const color = this.getBranchColor(branchName);
+                    const isCurrentBranch = branchName === currentBranch;
+                    
+                    text.setAttribute('font-weight', isCurrentBranch ? 'bold' : 'normal');
+                    text.setAttribute('fill', isCurrentBranch ? color : '#999');
+                    text.style.filter = isCurrentBranch ? `drop-shadow(0 0 3px ${color})` : 'none';
                 });
             }
             
@@ -1805,24 +1910,23 @@
                 const svgNS = 'http://www.w3.org/2000/svg';
                 
                 edges.forEach((edge, index) => {
+                    // Skip if this edge already exists
+                    if (this.edgeElements.has(edge.id)) {
+                        return;
+                    }
+                    
                     const fromPos = nodePositions.get(edge.from);
                     const toPos = nodePositions.get(edge.to);
                     
                     if (!fromPos || !toPos) return;
                     
-                    // Only draw edges for actual state changes, not for branch/switch operations
-                    if (edge.command && (edge.command.includes('branch') || edge.command.includes('switch'))) {
-                        return; // Skip branch and switch edges
-                    }
-                    
-                    // Create path for the edge
-                    const path = document.createElementNS(svgNS, 'path');
-                    
-                    // Calculate curved path
+                    // Create curved path for edges
                     const midX = (fromPos.x + toPos.x) / 2;
                     const controlY = Math.min(fromPos.y, toPos.y) - 30;
                     
                     const d = `M ${fromPos.x} ${fromPos.y} Q ${midX} ${controlY} ${toPos.x} ${toPos.y}`;
+                    
+                    const path = document.createElementNS(svgNS, 'path');
                     path.setAttribute('d', d);
                     
                     // Basic edge styling
@@ -1958,10 +2062,15 @@
                 }
             }
             
-            drawCommitNodes(nodes, nodePositions) {
+            drawNewCommitNodes(nodes, nodePositions) {
                 if (!this.nodesContainer) return;
                 
-                nodes.forEach(node => {
+                nodes.forEach((node, index) => {
+                    // Skip if this node already exists
+                    if (this.nodeElements.has(node.id)) {
+                        return;
+                    }
+                    
                     // Skip switch nodes (only in timeline log)
                     if (node.type === 'switch') {
                         return;
@@ -1979,9 +2088,15 @@
                     this.nodesContainer.appendChild(nodeElement);
                     this.nodeElements.set(node.id, nodeElement);
                     
-                    // Animate node appearance
-                    this.animateNodeAppearance(nodeElement);
+                    // Animate node appearance with staggered delay for chronological effect
+                    const delay = index * 100; // 100ms delay between each node
+                    this.animateNodeAppearance(nodeElement, delay);
                 });
+            }
+            
+            drawCommitNodes(nodes, nodePositions) {
+                // Keep this method for backward compatibility, but use drawNewCommitNodes for incremental rendering
+                this.drawNewCommitNodes(nodes, nodePositions);
             }
             
             createCommitNode(node, position) {
@@ -2150,7 +2265,7 @@
                 return `${node.type.toUpperCase()}${hash}\n${node.data.message || 'No message'}\nBranch: ${node.branch}\n${time}`;
             }
             
-            animateNodeAppearance(nodeElement) {
+            animateNodeAppearance(nodeElement, delay = 0) {
                 nodeElement.style.transform = 'translate(-50%, -50%) scale(0)';
                 nodeElement.style.opacity = '0';
                 
@@ -2158,13 +2273,18 @@
                     nodeElement.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                     nodeElement.style.transform = 'translate(-50%, -50%) scale(1)';
                     nodeElement.style.opacity = '1';
-                }, 50);
+                }, delay);
             }
             
-            drawHeadIndicator(headNodeId, nodePositions) {
-                if (!headNodeId) return;
+            drawHeadIndicator(nodes, nodePositions) {
+                // First, remove any existing HEAD indicators
+                this.removeExistingHeadIndicators();
                 
-                const headPos = nodePositions.get(headNodeId);
+                // Find the node that has the HEAD flag (radio button behavior)
+                const headNode = nodes.find(node => node.is_head);
+                if (!headNode) return;
+                
+                const headPos = nodePositions.get(headNode.id);
                 if (!headPos) return;
                 
                 // Check for any errors in the last few terminal outputs
@@ -2183,22 +2303,13 @@
                     return;
                 }
                 
-                // Only show HEAD for actual state nodes (init, add, commit, merge, push, pull, clone)
-                // NOT for branch nodes (branch creation doesn't move HEAD)
-                const headNode = this.nodeElements.get(headNodeId);
-                if (!headNode) return;
-                
-                const nodeType = headNode.className.includes(' ') ? 
-                    headNode.className.split(' ')[1] : 
-                    headNode.className;
-                
-                // Don't show HEAD on branch nodes (branch creation doesn't move HEAD)
-                if (nodeType === 'branch') {
-                    return;
-                }
+                // Get the DOM element for the HEAD node
+                const headNodeElement = this.nodeElements.get(headNode.id);
+                if (!headNodeElement) return;
                 
                 // Create HEAD indicator above the node
                 const headIndicator = document.createElement('div');
+                headIndicator.className = 'head-indicator'; // Add class for easy removal
                 headIndicator.style.cssText = `
                     position: absolute;
                     left: ${headPos.x}px;
@@ -2218,6 +2329,12 @@
                 headIndicator.textContent = 'HEAD';
                 
                 this.nodesContainer.appendChild(headIndicator);
+            }
+            
+            removeExistingHeadIndicators() {
+                // Remove all existing HEAD indicators
+                const existingIndicators = this.nodesContainer.querySelectorAll('.head-indicator');
+                existingIndicators.forEach(indicator => indicator.remove());
             }
             
             showNodeDetails(node) {

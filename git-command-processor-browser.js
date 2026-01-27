@@ -125,7 +125,12 @@ class GitCommandProcessor {
                 case 'switch':
                     console.log('Handling switch');
                     commandSuccess = await this.handleSwitch(parts);
-                    commandData = { type: 'switch', message: 'Switched branch' };
+                    const targetBranch = parts[2]; // Get the target branch
+                    commandData = { 
+                        type: 'switch', 
+                        message: 'Switched branch',
+                        branch: targetBranch // Store the target branch
+                    };
                     break;
                 case 'merge':
                     console.log('Handling merge');
@@ -173,8 +178,8 @@ class GitCommandProcessor {
                     commandSuccess = false;
             }
 
-            // Only add node if command was successful
-            if (commandSuccess !== false) {
+            // Only add node if command was successful AND it's not a read-only command
+            if (commandSuccess !== false && !this.isReadOnlyCommand(mainCommand, parts)) {
                 const commandNode = this.timeline.addNode(mainCommand, {
                     ...commandData,
                     command: trimmedCommand,
@@ -207,7 +212,25 @@ class GitCommandProcessor {
     createGitRepository() {
         // Repository state is now determined by timeline, no need for separate localStorage
     }
-
+    
+    isReadOnlyCommand(mainCommand, parts) {
+        // Commands that don't change repository state and shouldn't create nodes
+        switch (mainCommand) {
+            case 'branch':
+                // git branch (no arguments) lists branches - read-only
+                return parts.length === 2;
+            case 'status':
+            case 'log':
+            case 'show':
+            case 'diff':
+            case 'help':
+            case '--help':
+                return true;
+            default:
+                return false;
+        }
+    }
+    
     async handleInit(parts) {
         if (parts.length > 3) {
             this.addTerminalOutput('error: invalid arguments for git init', 'error');
