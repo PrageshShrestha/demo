@@ -52,17 +52,33 @@
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
-        
         .timeline-container {
             position: relative;
-            height: 400px;
+            height: 60vh;
+            overflow-y: auto;
             margin-top: 30px;
-            overflow: hidden;
-            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             background: rgba(15, 25, 40, 0.3);
         }
         
-        .branch-visualizer {
+        .timeline-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .timeline-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .timeline-container::-webkit-scrollbar-thumb {
+            background: rgba(78, 205, 196, 0.5);
+            border-radius: 4px;
+        }
+        
+        .timeline-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(78, 205, 196, 0.7);
+        }
             position: absolute;
             top: 0;
             left: 0;
@@ -370,11 +386,223 @@
         
         .auxiliary-commands {
             background: rgba(10, 25, 41, 0.6);
+        .auxiliary-commands {
+            background: rgba(10, 25, 41, 0.6);
             border-radius: 10px;
             padding: 15px;
             min-height: 100px;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
+        }
+        
+        .contextual-help {
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .help-content {
+            margin-bottom: 10px;
+        }
+        
+        .help-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .graph-control-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            background: rgba(40, 50, 70, 0.4);
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        
+        .graph-control-btn:hover {
+            background: rgba(78, 205, 196, 0.3);
+            border-color: rgba(78, 205, 196, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .graph-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .branch-index {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 30, 48, 0.95);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        
+        .branch-index-console {
+            background: rgba(20, 30, 48, 0.8);
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .branch-index-animation {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 30, 48, 0.9);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .branch-index-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .branch-index-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .branch-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .branch-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .branch-item.current-branch {
+            background: rgba(78, 205, 196, 0.3);
+            border: 2px solid rgba(78, 205, 196, 0.6);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+            transform: scale(1.05);
+            position: relative;
+        }
+        
+        .branch-item.current-branch::before {
+            content: '▶';
+            position: absolute;
+            left: -8px;
+            color: #4ecdc4;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        .branch-item.current-branch .branch-name {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+        
+        .branch-item.current-branch .branch-color-box {
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.6);
+            transform: scale(1.1);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .branch-color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .branch-name {
+            font-size: 12px;
+            font-family: monospace;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+        
+        .branch-index-number {
+            font-size: 10px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 2px;
+            min-width: 12px;
+            text-align: center;
+        }
+        
+        .help-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
+        }
+        
+        .help-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .help-text {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .help-text code {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+        
+        .help-toggle {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+        
+        .help-toggle:hover {
+            background: rgba(78, 205, 196, 0.3);
+            transform: translateY(-1px);
         }
         
         .auxiliary-commands h4 {
@@ -755,6 +983,7 @@
         .command-init .command-dot { background: #4CAF50; border-color: #2E7D32; }
         .command-add .command-dot { background: #2196F3; border-color: #1565C0; }
         .command-commit .command-dot { background: #FF9800; border-color: #F57C00; }
+                    <button class="main-cmd-btn" data-cmd="detach">git detach</button>
         .command-branch .command-dot { background: #9C27B0; border-color: #6A1B9A; }
         .command-switch .command-dot { background: #E91E63; border-color: #C2185B; }
         .command-merge .command-dot { background: #00BCD4; border-color: #0097A7; }
@@ -808,17 +1037,19 @@
         
         .command-text {
             color: #96ceb4;
-            font-size: 0.6rem;
-            font-family: monospace;
-        }
-        
-        .no-commits {
-            text-align: center;
-            color: #64748b;
-            font-style: italic;
-            padding: 40px;
-            font-size: 1.1rem;
-        }
+            // Add welcome message to terminal
+            gitProcessor.addTerminalOutput('🚀 Welcome to Git Timeline Visualizer!', 'info');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Start by initializing a Git repository:', 'info');
+            gitProcessor.addTerminalOutput('  git init', 'success');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Features available:', 'info');
+            gitProcessor.addTerminalOutput('  🌿 Create and switch branches', 'info');
+            gitProcessor.addTerminalOutput('  📝 Make commits and track changes', 'info');
+            gitProcessor.addTerminalOutput('  🔄 Visualize branch operations', 'info');
+            gitProcessor.addTerminalOutput('  📊 See real-time timeline updates', 'info');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Type "git init" to begin...', 'success');
         
         /* Add more styles from the previous HTML file as needed */
         
@@ -856,12 +1087,17 @@
         .branch-visualizer:active {
             cursor: grabbing;
         }
-        
-        .commit-nodes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+                <div class="graph-controls">
+                    <button class="graph-control-btn" onclick="zoomIn()">+</button>
+                    <button class="graph-control-btn" onclick="zoomOut()">-</button>
+                    <button class="graph-control-btn" onclick="resetZoom()">⟲</button>
+                    <button class="graph-control-btn" onclick="centerGraph()">⊙</button>
+                </div>
+                <!-- Branch Index in Animation Console -->
+                <div class="branch-index-animation" id="branch-index">
+                    <div class="branch-index-title">🌿 Branch Index</div>
+                    <div class="branch-index-content" id="branch-index-content"></div>
+                </div>
             height: 100%;
             z-index: 2;
             pointer-events: none;
@@ -927,6 +1163,11 @@
             </div>
             
             <div class="timeline-log-container">
+                'detach': [
+                    'git detach',
+                    'git checkout HEAD~1', // Alternative way to detach
+                    'git checkout <commit-hash>' // Another way to detach
+                ],
                 <h3>📜 Timeline Log</h3>
                 <div class="timeline-log" id="timeline-log">
                     <div class="no-logs">No Git commands executed yet.</div>
@@ -982,13 +1223,27 @@
                     <button class="main-cmd-btn" data-cmd="pull">git pull</button>
                     <button class="main-cmd-btn" data-cmd="push">git push</button>
                     <button class="main-cmd-btn" data-cmd="config">git config</button>
-                    <button class="main-cmd-btn" data-cmd="log">git log</button>
-                    <button class="main-cmd-btn" data-cmd="reset">git reset</button>
-                    <button class="main-cmd-btn" data-cmd="clone">git clone</button>
-                </div>
-                
                 <div class="auxiliary-commands" id="auxiliary-commands">
-                    <!-- Auxiliary commands will be populated here -->
+                    <!-- Contextual Help Panel -->
+                    <div class="contextual-help" id="contextual-help">
+                        <h4>💡 Smart Help & Hints</h4>
+                        <div id="help-content" class="help-content">
+                            <div class="help-item">
+                                <span class="help-icon">🚀</span>
+                                <div class="help-text">
+                                    <strong>Getting Started:</strong> Initialize your repository with <code>git init</code>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="help-toggle" onclick="toggleHelpPanel()">⚡ Quick Tips</button>
+                    </div>
+                    
+                    <!-- Command Suggestions -->
+                    <h4>🎯 Suggested Commands</h4>
+                    <div id="suggested-commands">
+                        <!-- Commands will be populated based on context -->
+                    </div>
+                </div>
                     <h4>git init</h4>
                     <button class="aux-cmd-btn" onclick="executeCommand('git init .')">git init .</button>
                 </div>
@@ -1097,6 +1352,142 @@
             });
         }
         
+
+        // Contextual Help System
+        function updateContextualHelp() {
+            if (!window.gitProcessor) return;
+            
+            const hasRepo = window.gitProcessor.hasGitRepository();
+            const currentBranch = window.gitProcessor.timeline.getCurrentBranch();
+            const stagedFiles = window.gitProcessor.sessionData.stagedFiles;
+            const committedFiles = window.gitProcessor.sessionData.committedFiles;
+            const branches = Array.from(window.gitProcessor.timeline.branches.keys());
+            
+            const helpContent = document.getElementById('help-content');
+            const suggestedCommands = document.getElementById('suggested-commands');
+            
+        async function executeCommand(command) {
+            if (window.gitProcessor) {
+                await window.gitProcessor.processCommand(command);
+                updateTerminal();
+                updateTimeline();
+                updateTimelineLog(command);
+                updateStorageAreas(); // Update storage areas after each command
+                updateContextualHelp(); // Update contextual help
+                
+                // Force timeline update to ensure animation console reflects changes
+                setTimeout(() => {
+                    updateTimeline();
+                }, 100);
+            }
+        }
+                        </div>
+                    </div>
+                    <div class="help-item">
+                        <span class="help-icon">📚</span>
+                        <div class="help-text">
+                            <strong>What is git init?</strong> Creates a new Git repository in the current directory, setting up all the necessary data structures and metadata for version control.
+                        </div>
+                    </div>`;
+                suggestedHTML += `
+                    <button class="aux-cmd-btn" onclick="executeCommand('git init')">git init</button>`;
+            } else {
+                // Repository exists - show contextual help
+                if (stagedFiles.length === 0 && committedFiles.length === 0) {
+                    helpHTML += `
+                        <div class="help-item">
+                            <span class="help-icon">📝</span>
+                            <div class="help-text">
+                                <strong>Ready to work:</strong> Create files and stage them with <code>git add</code>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">🌿</span>
+                            <div class="help-text">
+                                <strong>Current branch:</strong> ${currentBranch || 'main'} • Create branches with <code>git branch</code>
+                            </div>
+                        </div>`;
+                    suggestedHTML += `
+                        <button class="aux-cmd-btn" onclick="executeCommand('git branch feature')">git branch feature</button>
+                        <button class="aux-cmd-btn" onclick="executeCommand('git status')">git status</button>`;
+                } else if (stagedFiles.length > 0) {
+                    helpHTML += `
+                        <div class="help-item">
+                            <span class="help-icon">💾</span>
+                            <div class="help-text">
+                                <strong>Ready to commit:</strong> You have ${stagedFiles.length} staged file(s). Use <code>git commit -m "message"</code>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">📋</span>
+                            <div class="help-text">
+                                <strong>What is commit?</strong> Creates a snapshot of your staged changes with a descriptive message. This becomes a permanent record in your repository's history that you can return to later.
+                            </div>
+                        </div>`;
+                    suggestedHTML += `
+                        <button class="aux-cmd-btn" onclick="executeCommand('git commit -m "Initial commit"')">git commit -m "Initial commit"</button>
+                        <button class="aux-cmd-btn" onclick="executeCommand('git status')">git status</button>`;
+                } else if (committedFiles.length > 0 && branches.length === 1) {
+                    helpHTML += `
+                        <div class="help-item">
+                            <span class="help-icon">🌿</span>
+                            <div class="help-text">
+                                <strong>Time to branch:</strong> Create feature branches with <code>git branch</code> to organize your work
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">🔄</span>
+                            <div class="help-text">
+                                <strong>What is branching?</strong> Creates an independent line of development. Each branch has its own commit history, allowing you to work on features without affecting the main codebase.
+                            </div>
+                        </div>`;
+                    suggestedHTML += `
+                        <button class="aux-cmd-btn" onclick="executeCommand('git branch develop')">git branch develop</button>
+                        <button class="aux-cmd-btn" onclick="executeCommand('git switch develop')">git switch develop</button>`;
+                } else if (branches.length > 1) {
+                    helpHTML += `
+                        <div class="help-item">
+                            <span class="help-icon">🔀</span>
+                            <div class="help-text">
+                                <strong>Multi-branch workflow:</strong> Switch between branches with <code>git switch</code> or merge with <code>git merge</code>
+                            </div>
+                        </div>
+                        <div class="help-item">
+                            <span class="help-icon">🌐</span>
+                            <div class="help-text">
+                                <strong>What is merge?</strong> Integrates changes from one branch into another. Git automatically creates a merge commit that combines the histories, unless there are conflicts that need manual resolution.
+                            </div>
+                        </div>`;
+                    suggestedHTML += `
+                        <button class="aux-cmd-btn" onclick="executeCommand('git switch main')">git switch main</button>
+                        <button class="aux-cmd-btn" onclick="executeCommand('git merge develop')">git merge develop</button>`;
+                }
+                
+                // Always add status and log
+                suggestedHTML += `
+                    <button class="aux-cmd-btn" onclick="executeCommand('git status')">git status</button>
+                    <button class="aux-cmd-btn" onclick="executeCommand('git log --oneline')">git log --oneline</button>`;
+            }
+            
+                this.branchSpacing = 120; // Increased from 80 to prevent HEAD overlap
+            suggestedCommands.innerHTML = suggestedHTML;
+        }
+        
+        function toggleHelpPanel() {
+            const helpContent = document.getElementById('help-content');
+            if (helpContent.style.display === 'none') {
+                helpContent.style.display = 'block';
+            } else {
+                helpContent.style.display = 'none';
+            }
+        }
+        
+        // Update help after each command
+        function updateHelpAfterCommand() {
+            setTimeout(() => {
+                updateContextualHelp();
+            }, 200);
+        }
         function getAuxiliaryCommands(mainCmd) {
             const sessionData = window.gitProcessor.sessionData;
             
@@ -2451,6 +2842,81 @@
                     }, 2000);
                 }
             }
+
+        function updateGitStatusDisplay() {
+            const currentBranchElement = document.getElementById('current-branch');
+            const commitCountElement = document.getElementById('commit-count');
+            
+            if (!currentBranchElement || !commitCountElement) return;
+            
+            // Check if repository exists
+            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
+                currentBranchElement.textContent = 'No repository';
+                commitCountElement.textContent = ';
+                return;
+            }
+            
+            // Get current branch and commit count
+            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
+            const commitCount = Array.from(window.gitProcessor.timeline.nodes.values())
+                .filter(node => node.type === 'commit').length;
+            
+            currentBranchElement.textContent = currentBranch;
+            commitCountElement.textContent = commitCount > 0 ? `${commitCount} commits` : '0 commits';
+        }
+        
+        function updateBranchIndex() {
+            const branchIndexContent = document.getElementById('branch-index-content');
+            if (!branchIndexContent) {
+                console.log('Branch index content element not found');
+                return;
+            }
+            
+            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
+                branchIndexContent.innerHTML = '<div style="color: #999;">No repository</div>';
+                console.log('No repository found for branch index');
+                return;
+            }
+            
+            const branches = Array.from(window.gitProcessor.timeline.branches.entries());
+            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
+            const branchColors = {
+                'main': '#4CAF50',
+                'master': '#4CAF50',
+                'develop': '#FF9800',
+                'design_codes': '#2196F3',
+                'logic_codes': '#9C27B0',
+                'database_schema': '#FF5722',
+                'ui_components': '#00BCD4',
+                'api_endpoints': '#FF9800',
+                'testing_suite': '#4CAF50',
+                'documentation': '#795548',
+                'deployment': '#F44336',
+                'bugfix': '#F44336',
+                'hotfix': '#F44336',
+                'release': '#9C27B0'
+            };
+            
+            console.log('Updating branch index with branches:', branches);
+            console.log('Current branch:', currentBranch);
+            
+            let html = '';
+            branches.forEach(([branchName, nodeId], index) => {
+                const color = branchColors[branchName] || '#666';
+                const isCurrentBranch = branchName === currentBranch;
+                
+                html += `
+                    <div class="branch-item ${isCurrentBranch ? 'current-branch' : \}">
+                        <div class="branch-index-number">${index + 1}</div>
+                        <div class="branch-color-box" style="background-color: ${color}; border-color: ${color};"></div>
+                        <div class="branch-name">${branchName}</div>
+                    </div>
+                `;
+            });
+            
+            branchIndexContent.innerHTML = html;
+            console.log('Branch index updated with HTML:', html);
+        }
             
             highlightEdge(edgeId) {
                 const edgeElement = this.edgeElements.get(edgeId);
