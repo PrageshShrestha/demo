@@ -2207,6 +2207,10 @@
             <nav class="toc-nav">
                 <ul class="toc-list">
                     <li class="toc-item">
+                        <a href="#theory-basics" class="toc-link">⚡ 2 Mins Theory</a>
+                        <span class="toc-desc">Quick Git concepts</span>
+                    </li>
+                    <li class="toc-item">
                         <a href="#git-init" class="toc-link">git init</a>
                         <span class="toc-desc">Initialize repository</span>
                     </li>
@@ -2271,6 +2275,240 @@
             
             <div class="docs-intro">
                 <p>Quick reference for essential Git commands. Each command includes syntax, common usage, and key points.</p>
+            </div>
+
+            <!-- 2 Mins Theory Section -->
+            <div class="command-doc" id="theory-basics">
+                <h3 class="command-title">⚡ 2 Mins Theory - Git Core Concepts</h3>
+                <p>Essential Git concepts every developer should know in under 2 minutes.</p>
+                
+                <div class="command-syntax">
+                    <strong>🏗️ Git Architecture - The Three Trees:</strong><br><br>
+                    
+                    <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #4ecdc4;">
+Working Directory    Staging Area      Repository
+     │                   │                   │
+     ▼                   ▼                   ▼
+  [Your Files]  →  [Next Commit]  →  [Permanent History]
+     │                   │                   │
+     │              git add │              git commit
+     └───────────────────────┘                   │
+                          │                   │
+                          └───────────────────┘
+                    </pre>
+                    
+                    <em>Visual Flow:</em> Edit files → Stage → Commit → Save forever
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <strong>📝 What is a Commit? - Time Machine for Your Code:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #96ceb4;">
+Commit Chain (Your Project's Timeline):
+
+A (initial) ──→ B (add feature) ──→ C (fix bug) ──→ D (update docs)
+│               │                   │                   │
+│               │                   │                   │
+▼               ▼                   ▼                   ▼
+📁 Project      📁+Feature         📁+Fix             📁+Docs
+👤 Author       👤+Author          👤+Author          👤+Author
+📅 Time         📅+Time            📅+Time            📅+Time
+📝 "init"       📝 "add feature"   📝 "fix bug"       📝 "update docs"
+🆔 abc123       🆔 def456           🆔 ghi789           🆔 jkl012
+                        </pre>
+                        
+                        <em>Each commit = Complete snapshot + Metadata</em>
+                    </div>
+                    <div class="example">
+                        <strong>🎯 HEAD - Git's "You Are Here" Pointer:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #9c27b0;">
+HEAD BASICS:
+
+HEAD is a pointer that says "you are here"
+
+Normal State (on branch):
+HEAD → main → A → B → C
+       │
+       └── Current branch pointer
+
+Detached State (on commit):
+HEAD → C (directly pointing to commit)
+       │
+       └── No branch pointer
+
+
+HEAD MOVEMENT:
+
+1. git checkout main
+   HEAD → main → A → B → C
+
+2. git checkout feature  
+   HEAD → feature → D → E
+
+3. git checkout abc123 (commit hash)
+   HEAD → abc123 (DETACHED!)
+
+4. git switch -c new-feature (from detached)
+   HEAD → new-feature → abc123
+                        </pre>
+                        
+                        <em>HEAD = Your current position in Git history</em>
+                    </div>
+                    <div class="example">
+                        <strong>🚨 Detached HEAD - The Danger Zone:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #ff5722;">
+DETACHED HEAD SCENARIOS:
+
+❌ How to get into detached HEAD:
+1. git checkout abc123 (commit hash)
+2. git checkout HEAD~3 (go back 3 commits)
+3. git tag v1.0; git checkout v1.0
+
+⚠️ What happens in detached HEAD:
+HEAD → abc123
+       │
+       └── No branch tracking commits!
+
+📝 New commits here:
+HEAD → abc123 → NEW1 → NEW2
+       │
+       └── These commits can be LOST!
+
+✅ How to recover/exiting:
+
+Option 1: Create branch (SAFE)
+git switch -c save-my-work
+Result: save-my-work → abc123 → NEW1 → NEW2
+
+Option 2: Go back to branch (LOSES WORK)
+git checkout main
+Result: NEW1 and NEW2 are abandoned!
+
+Option 3: Use reflog (RECOVERY)
+git reflog
+git checkout -b save-work HEAD@{2}
+                        </pre>
+                        
+                        <em>🚨 Rule: Never work in detached HEAD without creating a branch!</em>
+                    </div>
+                    <div class="example">
+                        <strong>🔄 Merge vs Rebase - Visual Comparison:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #2196f3;">
+MERGE (Preserves History):
+
+main:     A ──→ B ──→ C ──→ F
+               │           ↗ ↑
+feature:       └──→ D ──→ E ┘
+
+Result: Diamond shape, complete history preserved
+
+
+REBASE (Linear History):
+
+Before:          After:
+main:  A─B─C         A─B─C─D'─E'─F
+feature:   └─D─E
+
+Result: Straight line, rewritten history
+                        </pre>
+                        
+                        <em>🚨 Golden Rule: Never rebase shared branches!</em>
+                    </div>
+                    <div class="example">
+                        <strong>🚨 Safety Nets - Git's Emergency Tools:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #f44336;">
+REFLOG (Your Safety Net):
+
+HEAD@{0}: commit: abc123 (latest)
+HEAD@{1}: commit: def456 
+HEAD@{2}: reset: moving to HEAD~1
+HEAD@{3}: commit: ghi789
+HEAD@{4}: checkout: moving to feature
+
+⤴️ Can jump back to any point!
+
+
+STASH (Temporary Pocket):
+
+Working: [dirty files] ──→ git stash ──→ [clean directory]
+                                      │
+                                      ↓
+                              [saved in pocket]
+                                      │
+                                      ↓
+                              git stash pop ──→ [restore files]
+                        </pre>
+                        
+                        <em>Reflog = Time machine, Stash = Temporary storage</em>
+                    </div>
+                    <div class="example">
+                        <strong>🌐 Remote Workflows - Team Collaboration:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #00bcd4;">
+TEAM WORKFLOW:
+
+Remote Repo    Local Repo    Your Work
+    │              │             │
+    │ git fetch    │             │
+    ↓──────────────→│             │
+    │              │             │
+    │              │ git pull    │
+    │              ↓─────────────→│
+    │              │             │
+    │              │             ▼
+    │              │        [Edit files]
+    │              │             │
+    │              │ git commit  │
+    │              │             ▼
+    │              │        [New commit]
+    │              │             │
+    │ git push     │             │
+    ←──────────────┤             │
+    │              │             │
+
+Cycle: Pull → Work → Commit → Push → Repeat
+                        </pre>
+                    </div>
+                    <div class="example">
+                        <strong>⚡ Pro Tips - Git Best Practices:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #4caf50;">
+🎯 COMMIT STRATEGY:
+
+✅ Good: Small, logical commits
+   - Add user authentication
+   - Fix login validation
+   - Update password requirements
+
+❌ Bad: Large, mixed commits
+   - Add auth + fix bugs + update docs + refactor
+
+
+🌿 BRANCH NAMING:
+
+✅ Good: feature/user-auth
+   ✅ Good: bugfix/login-validation
+   ✅ Good: hotfix/security-patch
+
+❌ Bad: stuff
+   ❌ Bad: fix
+   ❌ Bad: temp
+
+
+🔄 TEAM SAFETY:
+
+1. Pull before push
+2. Never force push main
+3. Review before merge
+4. Communicate big changes
+                        </pre>
+                    </div>
+                </div>
             </div>
             
             <!-- Git Init -->
@@ -2589,6 +2827,258 @@
                     <div class="example">
                         <code>git detach</code>
                         <p>Detach HEAD to current commit</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intermediate Git Concepts -->
+            <div class="command-doc" id="how-git-works">
+                <h3 class="command-title">🏗️ How Git Works Internally</h3>
+                <p>Understanding Git's repository system and internal mechanics.</p>
+                
+                <div class="command-syntax">
+                    <strong>Repository Structure:</strong><br>
+                    • <code>.git/objects/</code> - All commits, trees, blobs (content-addressable storage)<br>
+                    • <code>.git/refs/</code> - Branch references and tags<br>
+                    • <code>.git/HEAD</code> - Current branch pointer<br>
+                    • <code>.git/index</code> - Staging area
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <strong>Content-Addressable Storage:</strong><br>
+                        Every object stored by SHA-1 hash of its content<br>
+                        Commits reference tree objects → trees reference blobs
+                    </div>
+                    <div class="example">
+                        <strong>Three Trees:</strong><br>
+                        • Working Directory → Staging Area → Repository<br>
+                        • <code>git add</code> moves changes to staging<br>
+                        • <code>git commit</code> moves staging to repository
+                    </div>
+                    <div class="example">
+                        <strong>References:</strong><br>
+                        • Branch names are just text files containing commit SHAs<br>
+                        • HEAD points to current branch reference<br>
+                        • Tags are immutable references
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="head-and-detached">
+                <h3 class="command-title">🎯 HEAD & Detached State</h3>
+                <p>Understanding Git's HEAD pointer and detached HEAD scenarios.</p>
+                
+                <div class="command-syntax">
+                    <strong>Normal State:</strong><br>
+                    HEAD → branch-name → commit-SHA<br><br>
+                    <strong>Detached State:</strong><br>
+                    HEAD → commit-SHA (no branch)
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git checkout commit-hash</code>
+                        <p>Enter detached HEAD state</p>
+                    </div>
+                    <div class="example">
+                        <code>git switch main</code>
+                        <p>Exit detached state (creates no new commits)</p>
+                    </div>
+                    <div class="example">
+                        <code>git switch -c new-branch</code>
+                        <p>Create branch from detached commit</p>
+                    </div>
+                    <div class="example">
+                        <strong>⚠️ Risks:</strong><br>
+                        • Commits in detached state can be lost<br>
+                        • No automatic branch tracking<br>
+                        • Use reflog to recover lost commits
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="staging-area">
+                <h3 class="command-title">📋 Staging Area & Index</h3>
+                <p>Understanding Git's staging area and selective staging techniques.</p>
+                
+                <div class="command-syntax">
+                    <code>git add -p</code><br>
+                    <code>git add --patch</code><br>
+                    <code>git reset HEAD -- file</code><br>
+                    <code>git restore --staged file</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git add -p</code>
+                        <p>Interactive staging - choose specific hunks</p>
+                    </div>
+                    <div class="example">
+                        <code>git add -e</code>
+                        <p>Edit patches manually before staging</p>
+                    </div>
+                    <div class="example">
+                        <code>git diff --cached</code>
+                        <p>View staged changes only</p>
+                    </div>
+                    <div class="example">
+                        <strong>Workflow Benefits:</strong><br>
+                        • Review changes before committing<br>
+                        • Split logical changes into separate commits<br>
+                        • Create clean, atomic commits
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="merge-vs-rebase">
+                <h3 class="command-title">🔀 Merge vs Rebase</h3>
+                <p>Understanding integration strategies and when to use each.</p>
+                
+                <div class="command-syntax">
+                    <code>git merge feature</code><br>
+                    <code>git rebase main</code><br>
+                    <code>git rebase -i HEAD~3</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <strong>Merge:</strong><br>
+                        • Creates merge commit<br>
+                        • Preserves complete history<br>
+                        • Safe for shared branches<br>
+                        • Use: merging feature → main
+                    </div>
+                    <div class="example">
+                        <strong>Rebase:</strong><br>
+                        • Linear history<br>
+                        • Rewrites commit history<br>
+                        • Don't use on shared branches<br>
+                        • Use: updating feature branch
+                    </div>
+                    <div class="example">
+                        <code>git rebase -i</code>
+                        <p>Interactive rebase: squash, reorder, edit commits</p>
+                    </div>
+                    <div class="example">
+                        <strong>Golden Rule:</strong><br>
+                        Never rebase branches that others use
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="reset-modes">
+                <h3 class="command-title">↩️ Reset Modes</h3>
+                <p>Understanding git reset's three modes and their use cases.</p>
+                
+                <div class="command-syntax">
+                    <code>git reset --soft HEAD~1</code><br>
+                    <code>git reset --mixed HEAD~1</code><br>
+                    <code>git reset --hard HEAD~1</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git reset --soft HEAD~1</code>
+                        <p>Undo commit but keep changes staged</p>
+                        <small>Use: fix last commit message</small>
+                    </div>
+                    <div class="example">
+                        <code>git reset --mixed HEAD~1</code>
+                        <p>Undo commit and unstage changes</p>
+                        <small>Use: completely redo last commit</small>
+                    </div>
+                    <div class="example">
+                        <code>git reset --hard HEAD~1</code>
+                        <p>Discard all changes completely</p>
+                        <small>Use: abandon work, dangerous!</small>
+                    </div>
+                    <div class="example">
+                        <strong>Comparison Table:</strong><br>
+                        | Mode | Working Dir | Staging | Repository |<br>
+                        |------|-------------|---------|------------|<br>
+                        | --soft | unchanged | unchanged | moved |<br>
+                        | --mixed | unchanged | changed | moved |<br>
+                        | --hard | changed | changed | moved |
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="reflog-recovery">
+                <h3 class="command-title">🕰️ Reflog & Recovery</h3>
+                <p>Git's safety net for recovering lost commits and operations.</p>
+                
+                <div class="command-syntax">
+                    <code>git reflog</code><br>
+                    <code>git reflog --oneline</code><br>
+                    <code>git reset --hard HEAD@{2}</code><br>
+                    <code>git cherry-pick HEAD@{1}</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git reflog</code>
+                        <p>Show all local operations history</p>
+                    </div>
+                    <div class="example">
+                        <code>git reset --hard HEAD@{5}</code>
+                        <p>Recover to state 5 operations ago</p>
+                    </div>
+                    <div class="example">
+                        <strong>Recovery Scenarios:</strong><br>
+                        • Accidentally deleted branch<br>
+                        • Wrong reset --hard<br>
+                        • Lost commits in detached HEAD<br>
+                        • Failed rebase/merge
+                    </div>
+                    <div class="example">
+                        <strong>⚠️ Limitations:</strong><br>
+                        • Local only (doesn't sync)<br>
+                        • Expires after ~90 days<br>
+                        • Not a backup solution
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-doc" id="remote-workflows">
+                <h3 class="command-title">🌐 Remote Workflows</h3>
+                <p>Understanding remote operations and collaboration workflows.</p>
+                
+                <div class="command-syntax">
+                    <code>git fetch</code><br>
+                    <code>git pull</code><br>
+                    <code>git push --force-with-lease</code><br>
+                    <code>git branch -u origin/main</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git fetch</code>
+                        <p>Download remote changes without merging</p>
+                        <small>Safe: review before integrating</small>
+                    </div>
+                    <div class="example">
+                        <code>git pull</code>
+                        <p>Fetch + merge/rebase automatically</p>
+                        <small>Convenient: less control</small>
+                    </div>
+                    <div class="example">
+                        <code>git push --force-with-lease</code>
+                        <p>Safe force push: checks if remote changed</p>
+                    </div>
+                    <div class="example">
+                        <strong>Tracking Branches:</strong><br>
+                        • <code>git branch -u origin/feature</code> - set upstream<br>
+                        • <code>git push</code> pushes to upstream<br>
+                        • <code>git pull</code> pulls from upstream<br>
+                        • <code>git branch --set-upstream-to</code> alternative
+                    </div>
+                    <div class="example">
+                        <strong>Best Practices:</strong><br>
+                        • Pull before pushing<br>
+                        • Use fetch for safety<br>
+                        • Never force push main/master<br>
+                        • Protect important branches
                     </div>
                 </div>
             </div>
