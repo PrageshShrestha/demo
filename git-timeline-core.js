@@ -216,8 +216,11 @@ class GitTimelineCore {
         if (!this.currentState.isInitialized) return { success: false, output: "fatal: not a git repository" };
 
         const state = this.getCurrentBranchState();
-        if (this.currentState.stageDirectory.length === 0) {
-            return { success: false, output: "nothing to commit, working tree clean" };
+        
+        // Check if there are staged files
+        const stagedFiles = state.stagingArea || [];
+        if (stagedFiles.length === 0) {
+            return { success: false, output: "nothing to commit, working tree clean\nnothing added to commit" };
         }
 
         // Check for -m flag
@@ -231,8 +234,9 @@ class GitTimelineCore {
             return { success: false, output: "fatal: commit message required. Use 'git commit -m \"message\"'" };
         }
 
-        // Create commit snapshot from stage directory
-        const snapshot = this.currentState.stageDirectory.map(file => ({
+        // Create commit snapshot from staged files
+        const stagedFileObjects = state.workingDirectory.filter(file => stagedFiles.includes(file.name));
+        const snapshot = stagedFileObjects.map(file => ({
             ...file,
             staged: false,
             committed: true
@@ -246,32 +250,28 @@ class GitTimelineCore {
             hash,
             message,
             parents,
+            files: snapshot.map(f => f.name),
             timestamp: new Date(),
-            branch: this.currentState.currentBranch,
-            isMerge: false,
-            snapshot,
-            filesChanged: this.currentState.stageDirectory.length
+            author: this.currentState.userConfig,
+            filesChanged: stagedFiles.length
         };
 
         this.currentState.commits.set(hash, commit);
 
-        // Move files from stage directory to commit directory
-        this.currentState.commitDirectory.push(...this.currentState.stageDirectory);
-        this.currentState.stageDirectory = [];
+        // Move files from staging to committed state
+        this.currentState.commitDirectory.push(...stagedFileObjects);
+        state.stagingArea = [];
 
         // Update working directory state
         state.workingDirectory.forEach(file => {
-            if (state.stagingArea.includes(file.name)) {
+            if (stagedFiles.includes(file.name)) {
                 file.staged = false;
                 file.committed = true;
             }
         });
-        state.stagingArea = [];
 
         // Update branch head
-        if (this.currentState.detachedHEAD) {
-            this.currentState.detachedHEAD = hash;
-        } else {
+        if (!this.currentState.detachedHEAD) {
             this.currentState.branches.set(this.currentState.currentBranch, hash);
         }
 
@@ -291,7 +291,6 @@ class GitTimelineCore {
             timestamp: new Date(),
             oldHead: currentHead,
             message,
-            nodeId
         });
 
         return {
@@ -1155,7 +1154,8 @@ class GitTimelineCore {
     }
 
     generateCommitHash() {
-        return 'commit_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+        this.commitCounter++;
+        return 'commit_' + this.commitCounter.toString(36) + '_' + Math.random().toString(36).slice(2, 10);
     }
 
     resolveRef(ref) {

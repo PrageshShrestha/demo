@@ -48,6 +48,9 @@
             border: 1px solid rgba(100, 150, 255, 0.2);
             position: relative;
             overflow: hidden;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
         }
         
         .timeline-container {
@@ -95,6 +98,126 @@
             border-radius: 2px;
             z-index: 1;
             transition: right 0.5s ease;
+        }
+        
+        .timeline-log-container {
+            background: rgba(20, 30, 48, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            height: 400px;
+            margin-top: 30px;
+            overflow-y: auto;
+        }
+        
+        .timeline-log-container h3 {
+            color: #4ecdc4;
+            margin: 0 0 20px 0;
+            font-size: 1.1rem;
+            border-bottom: 2px solid rgba(78, 205, 196, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .timeline-log {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-log::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #4ecdc4, #764ba2);
+        }
+        
+        .log-entry {
+            position: relative;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(30, 40, 60, 0.4);
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            background: rgba(30, 40, 60, 0.6);
+            transform: translateX(5px);
+        }
+        
+        .log-entry::before {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            border: 2px solid rgba(15, 25, 40, 0.8);
+            z-index: 1;
+        }
+        
+        .log-entry.commit {
+            border-left-color: #51cf66;
+        }
+        
+        .log-entry.commit::before {
+            background: #51cf66;
+        }
+        
+        .log-entry.branch {
+            border-left-color: #ff9ff3;
+        }
+        
+        .log-entry.branch::before {
+            background: #ff9ff3;
+        }
+        
+        .log-entry.merge {
+            border-left-color: #feca57;
+        }
+        
+        .log-entry.merge::before {
+            background: #feca57;
+        }
+        
+        .log-entry.remote {
+            border-left-color: #ff6b6b;
+        }
+        
+        .log-entry.remote::before {
+            background: #ff6b6b;
+        }
+        
+        .log-time {
+            font-size: 0.8rem;
+            color: #96ceb4;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .log-command {
+            font-size: 0.9rem;
+            color: #74c0fc;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-description {
+            font-size: 0.85rem;
+            color: #e0e0e0;
+            line-height: 1.4;
+        }
+        
+        .no-logs {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+            font-style: italic;
         }
         
         .commit-nodes {
@@ -732,7 +855,14 @@
                 <div class="commit-nodes" id="commit-nodes"></div>
             </div>
             
-            <div class="stages-container">
+            <div class="timeline-log-container">
+                <h3>📜 Timeline Log</h3>
+                <div class="timeline-log" id="timeline-log">
+                    <div class="no-logs">No Git commands executed yet.</div>
+                </div>
+            </div>
+            
+            <div class="stages-container" style="grid-column: 1 / -1;">
                 <div class="stage stage-1" id="stage-working">
                     <div class="stage-header">
                         <div class="stage-title">📁 Working Directory</div>
@@ -975,6 +1105,7 @@
                 await window.gitProcessor.processCommand(command);
                 updateTerminal();
                 updateTimeline();
+                updateTimelineLog(command);
                 updateStorageAreas(); // Update storage areas after each command
             }
         }
@@ -996,77 +1127,271 @@
             terminalContent.scrollTop = terminalContent.scrollHeight;
         }
         
-        function updateTimeline() {
+        function updateTimelineLog(command) {
+            const timelineLog = document.getElementById('timeline-log');
+            if (!timelineLog) return;
+            
+            // Get the most recent timeline data
             const timelineData = window.gitProcessor.timeline.getTimelineData();
-            console.log('Timeline data:', timelineData);
-            
-            // Simple timeline visualization
-            const commitNodes = document.getElementById('commit-nodes');
-            const branchVisualizer = document.getElementById('branch-visualizer');
-            if (!commitNodes || !branchVisualizer) return;
-            
             const allNodes = Array.from(timelineData.nodes.values());
-            const currentHead = timelineData.head;
-            
-            let html = '';
-            let svgContent = '';
             
             if (allNodes.length === 0) {
-                html = '<div class="no-commits">No commands yet. Make your first Git command!</div>';
-            } else {
-                // Draw connecting lines in SVG (left to right)
-                svgContent = '<g class="timeline-connections">';
-                allNodes.forEach((node, index) => {
-                    if (index < allNodes.length - 1) {
-                        const x1 = 80 + index * 120;
-                        const x2 = 80 + (index + 1) * 120;
-                        const y = 60;
-                        svgContent += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#4ecdc4" stroke-width="2" opacity="0.6"/>`;
-                    }
-                });
-                svgContent += '</g>';
-                
-                // Create interactive command nodes (left to right)
-                allNodes.forEach((node, index) => {
-                    const isHead = node.id === currentHead;
-                    const commandType = node.type;
-                    const command = node.data.command || `git ${commandType}`;
-                    const message = node.data.message || 'No message';
-                    const x = 80 + index * 120;
-                    const y = 60;
-                    
-                    // Get node-specific data
-                    let nodeInfo = '';
-                    if (commandType === 'commit') {
-                        const shortHash = node.data.shortHash || node.id.slice(-7);
-                        nodeInfo = `<div class="commit-hash">${shortHash} ${isHead ? '📍' : ''}</div>`;
-                    } else {
-                        nodeInfo = `<div class="command-type">${commandType.toUpperCase()}</div>`;
-                    }
-                    
-                    html += `
-                        <div class="command-node ${isHead ? 'current-head' : ''} command-${commandType}" 
-                             style="left: ${x}px; top: ${y}px;"
-                             data-node-id="${node.id}"
-                             data-command="${command}"
-                             data-message="${message}"
-                             data-type="${commandType}">
-                            <div class="command-dot"></div>
-                            <div class="command-info">
-                                ${nodeInfo}
-                                <div class="command-message">${message}</div>
-                                <div class="command-text">${command}</div>
-                            </div>
-                        </div>
-                    `;
-                });
+                timelineLog.innerHTML = '<div class="no-logs">No Git commands executed yet.</div>';
+                return;
             }
             
-            commitNodes.innerHTML = html;
-            branchVisualizer.innerHTML = svgContent;
+            // Get the most recent node (last one in the array)
+            const latestNode = allNodes[allNodes.length - 1];
             
-            // Add interactive event listeners
-            addTimelineInteractivity();
+            // Create log entry
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${latestNode.type}`;
+            
+            // Format time
+            const time = new Date(latestNode.timestamp).toLocaleTimeString();
+            
+            // Get terminal output to check for errors and extract details
+            const terminalOutput = window.gitProcessor.getTerminalOutput();
+            const lastOutput = terminalOutput[terminalOutput.length - 1];
+            const hasError = lastOutput && lastOutput.type === 'error';
+            
+            // Get detailed description based on command and results
+            let description = '';
+            const commandParts = command.trim().split(' ');
+            const mainCommand = commandParts[1];
+            
+            if (hasError) {
+                description = `❌ ${lastOutput.message || 'Command failed'}`;
+            } else {
+                // Additional check for specific error messages that might not be marked as 'error' type
+                if (lastOutput && lastOutput.message) {
+                    const errorMsg = lastOutput.message;
+                    if (errorMsg.includes('nothing to commit') || 
+                        errorMsg.includes('fatal: not a git repository') ||
+                        errorMsg.includes('fatal:') ||
+                        errorMsg.includes('error:')) {
+                        description = `❌ ${errorMsg}`;
+                        return; // Skip the switch statement for errors
+                    }
+                }
+                
+                switch (mainCommand) {
+                    case 'init':
+                        if (commandParts.includes('--bare')) {
+                            description = '🆕 Initialized a new bare Git repository';
+                        } else if (commandParts.length > 2) {
+                            description = `🆕 Initialized Git repository in "${commandParts[2]}"`;
+                        } else {
+                            description = '🆕 Initialized a new Git repository in current directory';
+                        }
+                        break;
+                        
+                    case 'add':
+                        if (commandParts.includes('.')) {
+                            description = '📁 Added all files to staging area';
+                        } else if (commandParts.includes('-A')) {
+                            description = '📁 Added all files including deletions to staging area';
+                        } else if (commandParts.includes('-p')) {
+                            description = '📝 Added selected patches to staging area interactively';
+                        } else {
+                            const files = commandParts.slice(2).join(', ');
+                            description = `📄 Added "${files}" to staging area`;
+                        }
+                        break;
+                        
+                    case 'commit':
+                        const commitMatch = command.match(/-m\s+"([^"]+)"/);
+                        const commitMessage = commitMatch ? commitMatch[1] : 'No message';
+                        if (latestNode.data.shortHash) {
+                            description = `✅ Created commit ${latestNode.data.shortHash}: "${commitMessage}"`;
+                        } else {
+                            description = `✅ Created commit: "${commitMessage}"`;
+                        }
+                        break;
+                        
+                    case 'branch':
+                        if (commandParts.includes('-d') || commandParts.includes('-D')) {
+                            const branchName = commandParts[commandParts.indexOf('-d') + 1] || commandParts[commandParts.indexOf('-D') + 1];
+                            description = `🗑️ Deleted branch "${branchName}"`;
+                        } else if (commandParts.includes('-m')) {
+                            const oldName = commandParts[commandParts.indexOf('-m') + 1];
+                            const newName = commandParts[commandParts.indexOf('-m') + 2];
+                            description = `🔄 Renamed branch "${oldName}" to "${newName}"`;
+                        } else if (commandParts.includes('-a')) {
+                            description = '📋 Listed all branches (local and remote)';
+                        } else if (commandParts.length > 2) {
+                            description = `🌿 Created new branch "${commandParts[2]}"`;
+                        } else {
+                            description = '📋 Listed all local branches';
+                        }
+                        break;
+                        
+                    case 'switch':
+                    case 'checkout':
+                        if (commandParts.includes('-c')) {
+                            const branchName = commandParts[commandParts.indexOf('-c') + 1];
+                            description = `🌿 Created and switched to new branch "${branchName}"`;
+                        } else if (commandParts[2] === '-') {
+                            description = '🔄 Switched to previous branch';
+                        } else {
+                            const branchName = commandParts[2];
+                            description = `🔄 Switched from current branch to "${branchName}"`;
+                        }
+                        break;
+                        
+                    case 'merge':
+                        const branchName = commandParts[2];
+                        if (commandParts.includes('--no-ff')) {
+                            description = `🔀 Merged "${branchName}" into current branch (no fast-forward)`;
+                        } else if (commandParts.includes('--abort')) {
+                            description = '❌ Aborted merge operation';
+                        } else {
+                            description = `🔀 Merged "${branchName}" into current branch`;
+                        }
+                        break;
+                        
+                    case 'pull':
+                        if (commandParts.length > 2) {
+                            const remote = commandParts[2];
+                            const branch = commandParts[3] || 'main';
+                            description = `⬇️ Pulled changes from "${remote}/${branch}"`;
+                        } else {
+                            description = '⬇️ Pulled changes from default remote';
+                        }
+                        break;
+                        
+                    case 'push':
+                        if (commandParts.includes('-u')) {
+                            const remote = commandParts[2];
+                            const branch = commandParts[3];
+                            description = `⬆️ Pushed "${branch}" to "${remote}" and set upstream`;
+                        } else if (commandParts.includes('--force')) {
+                            const remote = commandParts[2];
+                            const branch = commandParts[3];
+                            description = `⬆️ Force pushed "${branch}" to "${remote}"`;
+                        } else if (commandParts.length > 2) {
+                            const remote = commandParts[2];
+                            const branch = commandParts[3];
+                            description = `⬆️ Pushed "${branch}" to "${remote}"`;
+                        } else {
+                            description = '⬆️ Pushed changes to default remote';
+                        }
+                        break;
+                        
+                    case 'remote':
+                        if (commandParts.includes('add')) {
+                            const name = commandParts[commandParts.indexOf('add') + 1];
+                            const url = commandParts[commandParts.indexOf('add') + 2];
+                            description = `🌐 Added remote "${name}" pointing to ${url}`;
+                        } else if (commandParts.includes('remove')) {
+                            const name = commandParts[commandParts.indexOf('remove') + 1];
+                            description = `🗑️ Removed remote "${name}"`;
+                        } else if (commandParts.includes('-v')) {
+                            description = '📋 Listed all remotes with URLs';
+                        } else {
+                            description = '🌐 Remote operation completed';
+                        }
+                        break;
+                        
+                    case 'clone':
+                        const url = commandParts[2];
+                        const targetDir = commandParts[3];
+                        if (targetDir) {
+                            description = `📥 Cloned repository from ${url} into "${targetDir}"`;
+                        } else {
+                            description = `📥 Cloned repository from ${url}`;
+                        }
+                        break;
+                        
+                    case 'config':
+                        if (commandParts.includes('--global')) {
+                            if (command.includes('user.name')) {
+                                const nameMatch = command.match(/user\.name\s+"([^"]+)"/);
+                                const name = nameMatch ? nameMatch[1] : 'updated';
+                                description = `⚙️ Set global user name to "${name}"`;
+                            } else if (command.includes('user.email')) {
+                                const emailMatch = command.match(/user\.email\s+"([^"]+)"/);
+                                const email = emailMatch ? emailMatch[1] : 'updated';
+                                description = `⚙️ Set global user email to "${email}"`;
+                            } else {
+                                description = '⚙️ Updated global Git configuration';
+                            }
+                        } else {
+                            description = '⚙️ Updated Git configuration';
+                        }
+                        break;
+                        
+                    case 'log':
+                        if (commandParts.includes('--oneline')) {
+                            description = '📜 Displayed commit history in compact format';
+                        } else if (commandParts.includes('--graph')) {
+                            description = '📜 Displayed commit history with branch graph';
+                        } else if (commandParts.includes('-n')) {
+                            const count = commandParts[commandParts.indexOf('-n') + 1];
+                            description = `📜 Displayed last ${count} commits`;
+                        } else {
+                            description = '📜 Displayed full commit history';
+                        }
+                        break;
+                        
+                    case 'reset':
+                        if (commandParts.includes('--hard')) {
+                            const ref = commandParts[commandParts.indexOf('--hard') + 1] || 'HEAD';
+                            description = `🔄 Hard reset to ${ref} (discarded all changes)`;
+                        } else if (commandParts.includes('--soft')) {
+                            const ref = commandParts[commandParts.indexOf('--soft') + 1] || 'HEAD';
+                            description = `🔄 Soft reset to ${ref} (kept changes staged)`;
+                        } else {
+                            const ref = commandParts[2] || 'HEAD';
+                            description = `🔄 Mixed reset to ${ref} (unstaged changes)`;
+                        }
+                        break;
+                        
+                    case 'status':
+                        description = '📊 Checked repository status';
+                        break;
+                        
+                    default:
+                        description = `⚡ Executed: ${command}`;
+                }
+            }
+            
+            logEntry.innerHTML = `
+                <div class="log-time">${time}</div>
+                <div class="log-command">${command}</div>
+                <div class="log-description">${description}</div>
+            `;
+            
+            // Remove the "no logs" message if it exists
+            const noLogs = timelineLog.querySelector('.no-logs');
+            if (noLogs) {
+                noLogs.remove();
+            }
+            
+            // Add the new entry at the top
+            timelineLog.insertBefore(logEntry, timelineLog.firstChild);
+            
+            // Limit to 20 most recent entries
+            const entries = timelineLog.querySelectorAll('.log-entry');
+            if (entries.length > 20) {
+                entries[entries.length - 1].remove();
+            }
+        }
+        
+        function updateTimeline() {
+            const timelineData = window.gitProcessor.timeline.getTimelineData();
+            
+            // Keep animation console sterile - no visualization
+            const commitNodes = document.getElementById('commit-nodes');
+            const branchVisualizer = document.getElementById('branch-visualizer');
+            
+            if (commitNodes) {
+                commitNodes.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-style: italic;">Animation Console - Sterile</div>';
+            }
+            
+            if (branchVisualizer) {
+                branchVisualizer.innerHTML = '';
+            }
         }
         
         function addTimelineInteractivity() {
