@@ -2203,7 +2203,7 @@
     <div class="documentation-section">
         <!-- Table of Contents Sidebar -->
         <div class="docs-toc">
-            <h3 class="toc-title">📋 Table of Contents</h3>
+            <h3 class="toc-title">📋 Quick Navigation</h3>
             <nav class="toc-nav">
                 <ul class="toc-list">
                     <li class="toc-item">
@@ -2267,233 +2267,119 @@
         </div>
         
         <div class="documentation-container">
-            <h2 class="documentation-title">📚 Git Commands Documentation</h2>
-            
-            <!-- Git Init Documentation -->
-            <h2 class="documentation-title">📚 Git Commands Documentation</h2>
+            <h2 class="documentation-title">📚 Git Commands Reference</h2>
             
             <div class="docs-intro">
-                <h3>🎯 Understanding Git Commands</h3>
-                <p>Git commands are the building blocks of version control. Each command serves a specific purpose in managing your codebase history, branches, and collaborations. Below you'll find detailed explanations of what each command actually does, not just how to use it.</p>
+                <p>Quick reference for essential Git commands. Each command includes syntax, common usage, and key points.</p>
             </div>
             
-            <!-- Git Init Documentation -->
+            <!-- Git Init -->
             <div class="command-doc" id="git-init">
                 <h3 class="command-title">git init</h3>
-                <div class="command-description">
-                    <p><strong>What it actually does:</strong> Creates a new Git repository by initializing a hidden <code>.git</code> directory in your project folder. This directory contains all the metadata and object database that Git uses to track changes, manage branches, and maintain your complete project history.</p>
-                    
-                    <p><strong>Why you need it:</strong> Without <code>git init</code>, your folder is just a regular directory. After running it, Git can track every change, create branches, and maintain a complete history of your project. The <code>.git</code> directory contains:</p>
-                    <ul>
-                        <li><strong>Objects:</strong> Commits, trees, blobs, and tags that store your actual data</li>
-                        <li><strong>References:</strong> Branch pointers and tags that point to specific commits</li>
-                        <li><strong>Configuration:</strong> Repository settings and user preferences</li>
-                        <li><strong>Index:</strong> Staging area for preparing commits</li>
-                    </ul>
-                    
-                    <p><strong>When to use:</strong> Use this once per project when starting version control. You can also run it in an existing directory to start tracking changes, or run it again to reinitialize (which won't affect your existing work).</p>
-                </div>
+                <p>Initialize a new Git repository in the current directory.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
-                    <code>git init [&lt;directory&gt;]</code>
+                    <code>git init</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git init</code>
-                        <p>Initialize repository in current directory</p>
-                    </div>
-                    <div class="example">
-                        <code>git init my-project</code>
-                        <p>Initialize repository in "my-project" directory</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Empty Directory</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git init</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">.git/ directory created</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Ready for version control</div>
+                        <p>Create repository in current directory</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Add Documentation -->
+            <!-- Git Add -->
             <div class="command-doc" id="git-add">
                 <h3 class="command-title">git add</h3>
-                <div class="command-description">
-                    <p>Add file contents to the staging area for the next commit.</p>
-                </div>
+                <p>Stage files for the next commit.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
-                    <code>git add &lt;file&gt;...</code><br>
+                    <code>git add &lt;file&gt;</code><br>
                     <code>git add .</code><br>
-                    <code>git add *.extension</code>
+                    <code>git add *.ext</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git add app.js</code>
-                        <p>Add specific file to staging area</p>
+                        <p>Stage specific file</p>
                     </div>
                     <div class="example">
                         <code>git add .</code>
-                        <p>Add all files in current directory</p>
-                    </div>
-                    <div class="example">
-                        <code>git add *.js</code>
-                        <p>Add all JavaScript files</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Working Directory</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git add</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Staging Area</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Ready to commit</div>
+                        <p>Stage all files</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Commit Documentation -->
+            <!-- Git Commit -->
             <div class="command-doc" id="git-commit">
                 <h3 class="command-title">git commit</h3>
-                <div class="command-description">
-                    <p>Record changes to the repository with a descriptive message.</p>
-                </div>
+                <p>Save staged changes with a descriptive message.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git commit -m "&lt;message&gt;"</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git commit -m "Add user authentication"</code>
-                        <p>Commit with descriptive message</p>
+                        <p>Commit with message</p>
                     </div>
                     <div class="example">
-                        <code>git commit -m "Fix bug in login form"</code>
+                        <code>git commit -m "Fix login bug"</code>
                         <p>Commit bug fix</p>
-                    </div>
-                    <div class="example">
-                        <code>git commit -m "Update documentation"</code>
-                        <p>Commit documentation changes</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Staging Area</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git commit</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Local Repository</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Permanent snapshot</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Branch Documentation -->
+            <!-- Git Branch -->
             <div class="command-doc" id="git-branch">
                 <h3 class="command-title">git branch</h3>
-                <div class="command-description">
-                    <p>Create, list, rename, or delete branches in your repository.</p>
-                </div>
+                <p>Create, list, rename, or delete branches.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git branch</code><br>
-                    <code>git branch &lt;branch-name&gt;</code><br>
-                    <code>git branch -d &lt;branch-name&gt;</code><br>
+                    <code>git branch &lt;name&gt;</code><br>
+                    <code>git branch -d &lt;name&gt;</code><br>
                     <code>git branch -m &lt;old&gt; &lt;new&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git branch</code>
                         <p>List all branches</p>
                     </div>
                     <div class="example">
-                        <code>git branch design_codes</code>
+                        <code>git branch feature</code>
                         <p>Create new branch</p>
                     </div>
                     <div class="example">
-                        <code>git branch -d feature-old</code>
+                        <code>git branch -d old-feature</code>
                         <p>Delete branch</p>
-                    </div>
-                    <div class="example">
-                        <code>git branch -m old-name new-name</code>
-                        <p>Rename branch</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Branch Workflow:</h4>
-                    <div class="branch-diagram">
-                        <div class="branch-line main-branch">
-                            <div class="branch-commit">main</div>
-                            <div class="branch-arrow">→</div>
-                            <div class="branch-commit">commit1</div>
-                            <div class="branch-arrow">→</div>
-                            <div class="branch-commit">commit2</div>
-                        </div>
-                        <div class="branch-split">↘</div>
-                        <div class="branch-line feature-branch">
-                            <div class="branch-commit">feature</div>
-                            <div class="branch-arrow">→</div>
-                            <div class="branch-commit">feat1</div>
-                            <div class="branch-arrow">→</div>
-                            <div class="branch-commit">feat2</div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Switch Documentation -->
+            <!-- Git Switch -->
             <div class="command-doc" id="git-switch">
                 <h3 class="command-title">git switch</h3>
-                <div class="command-description">
-                    <p>Switch between branches or restore working tree files.</p>
-                </div>
+                <p>Switch between branches or create and switch to new branch.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
-                    <code>git switch &lt;branch-name&gt;</code><br>
+                    <code>git switch &lt;branch&gt;</code><br>
                     <code>git switch -c &lt;new-branch&gt;</code><br>
                     <code>git switch -</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git switch main</code>
                         <p>Switch to main branch</p>
                     </div>
                     <div class="example">
-                        <code>git switch design_codes</code>
-                        <p>Switch to design_codes branch</p>
-                    </div>
-                    <div class="example">
-                        <code>git switch -c new-feature</code>
+                        <code>git switch -c feature</code>
                         <p>Create and switch to new branch</p>
                     </div>
                     <div class="example">
@@ -2501,337 +2387,158 @@
                         <p>Switch to previous branch</p>
                     </div>
                 </div>
-                
-                <div class="command-diagram">
-                    <h4>Switching Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Current Branch</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git switch target</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">HEAD moves to target</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Working files updated</div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Git Merge Documentation -->
+            <!-- Git Merge -->
             <div class="command-doc" id="git-merge">
                 <h3 class="command-title">git merge</h3>
-                <div class="command-description">
-                    <p>Join two or more development histories together.</p>
-                </div>
+                <p>Join branches together.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
-                    <code>git merge &lt;branch-name&gt;</code><br>
+                    <code>git merge &lt;branch&gt;</code><br>
                     <code>git merge --abort</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
-                        <code>git merge design_codes</code>
-                        <p>Merge design_codes into current branch</p>
-                    </div>
-                    <div class="example">
-                        <code>git merge logic_codes</code>
-                        <p>Merge logic_codes into current branch</p>
+                        <code>git merge feature</code>
+                        <p>Merge feature into current branch</p>
                     </div>
                     <div class="example">
                         <code>git merge --abort</code>
                         <p>Abort merge in progress</p>
                     </div>
                 </div>
-                
-                <div class="command-diagram">
-                    <h4>Merge Workflow:</h4>
-                    <div class="merge-diagram">
-                        <div class="merge-branch">
-                            <div class="merge-label">main</div>
-                            <div class="merge-commits">
-                                <div class="merge-commit">A</div>
-                                <div class="merge-arrow">→</div>
-                                <div class="merge-commit">B</div>
-                            </div>
-                        </div>
-                        <div class="merge-branch">
-                            <div class="merge-label">feature</div>
-                            <div class="merge-commits">
-                                <div class="merge-commit">A</div>
-                                <div class="merge-arrow">→</div>
-                                <div class="merge-commit">C</div>
-                                <div class="merge-arrow">→</div>
-                                <div class="merge-commit">D</div>
-                            </div>
-                        </div>
-                        <div class="merge-result">
-                            <div class="merge-arrow">↓</div>
-                            <div class="merge-label">merge</div>
-                            <div class="merge-arrow">↓</div>
-                            <div class="merge-commit">M</div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Git Remote Documentation -->
+            <!-- Git Remote -->
             <div class="command-doc" id="git-remote">
                 <h3 class="command-title">git remote</h3>
-                <div class="command-description">
-                    <p>Manage remote repositories for pushing and pulling changes.</p>
-                </div>
+                <p>Manage remote repositories.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git remote -v</code><br>
                     <code>git remote add &lt;name&gt; &lt;url&gt;</code><br>
-                    <code>git remote remove &lt;name&gt;</code><br>
-                    <code>git remote set-url &lt;name&gt; &lt;url&gt;</code>
+                    <code>git remote remove &lt;name&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git remote -v</code>
-                        <p>List all remotes with URLs</p>
+                        <p>List all remotes</p>
                     </div>
                     <div class="example">
                         <code>git remote add origin https://github.com/user/repo.git</code>
-                        <p>Add new remote repository</p>
-                    </div>
-                    <div class="example">
-                        <code>git remote remove origin</code>
-                        <p>Remove remote repository</p>
-                    </div>
-                    <div class="example">
-                        <code>git remote set-url origin https://github.com/user/new-repo.git</code>
-                        <p>Change remote URL</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Remote Workflow:</h4>
-                    <div class="remote-diagram">
-                        <div class="remote-box local">
-                            <div class="remote-label">Local Repository</div>
-                            <div class="remote-commits">A → B → C</div>
-                        </div>
-                        <div class="remote-arrows">
-                            <div class="remote-arrow push">push ↑</div>
-                            <div class="remote-arrow pull">pull ↓</div>
-                        </div>
-                        <div class="remote-box remote">
-                            <div class="remote-label">Remote Repository</div>
-                            <div class="remote-commits">A → B → C</div>
-                        </div>
+                        <p>Add remote repository</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Pull Documentation -->
+            <!-- Git Pull -->
             <div class="command-doc" id="git-pull">
                 <h3 class="command-title">git pull</h3>
-                <div class="command-description">
-                    <p>Fetch from and integrate with another repository or local branch.</p>
-                </div>
+                <p>Fetch and integrate changes from remote repository.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git pull</code><br>
                     <code>git pull &lt;remote&gt; &lt;branch&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git pull</code>
-                        <p>Pull from default remote and branch</p>
+                        <p>Pull from default remote</p>
                     </div>
                     <div class="example">
                         <code>git pull origin main</code>
                         <p>Pull main branch from origin</p>
                     </div>
                 </div>
-                
-                <div class="command-diagram">
-                    <h4>Pull Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Remote Repository</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git pull</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Fetch changes</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Merge with local</div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Git Push Documentation -->
+            <!-- Git Push -->
             <div class="command-doc" id="git-push">
                 <h3 class="command-title">git push</h3>
-                <div class="command-description">
-                    <p>Update remote repository with local commits.</p>
-                </div>
+                <p>Upload local commits to remote repository.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git push</code><br>
-                    <code>git push &lt;remote&gt; &lt;branch&gt;</code><br>
-                    <code>git push --force</code>
+                    <code>git push &lt;remote&gt; &lt;branch&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git push</code>
-                        <p>Push to default remote and branch</p>
+                        <p>Push to default remote</p>
                     </div>
                     <div class="example">
                         <code>git push origin main</code>
                         <p>Push main branch to origin</p>
                     </div>
-                    <div class="example">
-                        <code>git push --force origin main</code>
-                        <p>Force push (overwrites remote history)</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Push Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Local Repository</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git push</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Send commits</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Remote updated</div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Git Config Documentation -->
+            <!-- Git Config -->
             <div class="command-doc" id="git-config">
                 <h3 class="command-title">git config</h3>
-                <div class="command-description">
-                    <p>Get and set repository or global configuration options.</p>
-                </div>
+                <p>Set configuration options.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git config --global user.name "&lt;name&gt;"</code><br>
-                    <code>git config --global user.email "&lt;email&gt;"</code><br>
-                    <code>git config --get &lt;option&gt;</code>
+                    <code>git config --global user.email "&lt;email&gt;"</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git config --global user.name "John Doe"</code>
-                        <p>Set global user name</p>
+                        <p>Set user name</p>
                     </div>
                     <div class="example">
                         <code>git config --global user.email "john@example.com"</code>
-                        <p>Set global user email</p>
-                    </div>
-                    <div class="example">
-                        <code>git config --get user.name</code>
-                        <p>Get user name</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Config Levels:</h4>
-                    <div class="config-diagram">
-                        <div class="config-level">
-                            <div class="config-label">System</div>
-                            <div class="config-desc">/etc/gitconfig</div>
-                        </div>
-                        <div class="config-level">
-                            <div class="config-label">Global</div>
-                            <div class="config-desc">~/.gitconfig</div>
-                        </div>
-                        <div class="config-level">
-                            <div class="config-label">Local</div>
-                            <div class="config-desc">.git/config</div>
-                        </div>
+                        <p>Set user email</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Git Log Documentation -->
+            <!-- Git Log -->
             <div class="command-doc" id="git-log">
                 <h3 class="command-title">git log</h3>
-                <div class="command-description">
-                    <p>Show commit logs and find specific commits.</p>
-                </div>
+                <p>Show commit history.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git log</code><br>
                     <code>git log --oneline</code><br>
-                    <code>git log -n &lt;number&gt;</code><br>
-                    <code>git log --graph</code>
+                    <code>git log -n &lt;number&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git log</code>
-                        <p>Show detailed commit history</p>
+                        <p>Show detailed history</p>
                     </div>
                     <div class="example">
                         <code>git log --oneline</code>
-                        <p>Show compact commit history</p>
+                        <p>Show compact history</p>
                     </div>
                     <div class="example">
                         <code>git log -n 5</code>
                         <p>Show last 5 commits</p>
                     </div>
-                    <div class="example">
-                        <code>git log --graph</code>
-                        <p>Show commit history with graph</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Log Output:</h4>
-                    <div class="log-example">
-                        <div class="log-entry">
-                            <div class="log-hash">abc1234</div>
-                            <div class="log-message">Add user authentication</div>
-                            <div class="log-author">John Doe</div>
-                            <div class="log-date">2024-01-15</div>
-                        </div>
-                        <div class="log-entry">
-                            <div class="log-hash">def5678</div>
-                            <div class="log-message">Fix login bug</div>
-                            <div class="log-author">John Doe</div>
-                            <div class="log-date">2024-01-14</div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Git Reset Documentation -->
+            <!-- Git Reset -->
             <div class="command-doc" id="git-reset">
                 <h3 class="command-title">git reset</h3>
-                <div class="command-description">
-                    <p>Reset current HEAD to a specified state. Affects local repository only.</p>
-                </div>
+                <p>Reset HEAD to specified state.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git reset --soft HEAD~1</code><br>
                     <code>git reset HEAD~1</code><br>
                     <code>git reset --hard HEAD~1</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git reset --soft HEAD~1</code>
                         <p>Reset but keep changes staged</p>
@@ -2845,103 +2552,43 @@
                         <p>Reset and discard all changes</p>
                     </div>
                 </div>
-                
-                <div class="command-diagram">
-                    <h4>Reset Types:</h4>
-                    <div class="reset-diagram">
-                        <div class="reset-type">
-                            <div class="reset-label">--soft</div>
-                            <div class="reset-desc">Commit → Staged</div>
-                        </div>
-                        <div class="reset-type">
-                            <div class="reset-label">(default)</div>
-                            <div class="reset-desc">Staged → Working</div>
-                        </div>
-                        <div class="reset-type">
-                            <div class="reset-label">--hard</div>
-                            <div class="reset-desc">All changes discarded</div>
-                        </div>
-                    </div>
-                    <div class="reset-warning">
-                        ⚠️ <strong>Note:</strong> Reset only affects local repository. Remote repository remains unchanged.
-                    </div>
-                </div>
             </div>
 
-            <!-- Git Clone Documentation -->
+            <!-- Git Clone -->
             <div class="command-doc" id="git-clone">
                 <h3 class="command-title">git clone</h3>
-                <div class="command-description">
-                    <p>Clone a repository into a new directory.</p>
-                </div>
+                <p>Clone a repository into new directory.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
-                    <code>git clone &lt;repository-url&gt;</code><br>
-                    <code>git clone &lt;repository-url&gt; &lt;directory&gt;</code>
+                    <code>git clone &lt;url&gt;</code><br>
+                    <code>git clone &lt;url&gt; &lt;directory&gt;</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git clone https://github.com/user/repo.git</code>
-                        <p>Clone repository into new directory</p>
+                        <p>Clone repository</p>
                     </div>
                     <div class="example">
                         <code>git clone https://github.com/user/repo.git my-project</code>
                         <p>Clone into specific directory</p>
                     </div>
                 </div>
-                
-                <div class="command-diagram">
-                    <h4>Clone Workflow:</h4>
-                    <div class="workflow-diagram">
-                        <div class="workflow-step">Remote Repository</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">git clone</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Download all data</div>
-                        <div class="workflow-arrow">→</div>
-                        <div class="workflow-step">Local copy created</div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Git Detach Documentation -->
+            <!-- Git Detach -->
             <div class="command-doc" id="git-detach">
                 <h3 class="command-title">git detach</h3>
-                <div class="command-description">
-                    <p>Detach HEAD to point directly to a commit (detached HEAD state).</p>
-                </div>
+                <p>Detach HEAD to point directly to commit.</p>
                 
                 <div class="command-syntax">
-                    <h4>Syntax:</h4>
                     <code>git detach</code>
                 </div>
                 
                 <div class="command-examples">
-                    <h4>Examples:</h4>
                     <div class="example">
                         <code>git detach</code>
                         <p>Detach HEAD to current commit</p>
-                    </div>
-                </div>
-                
-                <div class="command-diagram">
-                    <h4>Detached HEAD State:</h4>
-                    <div class="detach-diagram">
-                        <div class="detach-state normal">
-                            <div class="detach-label">Normal State</div>
-                            <div class="detach-flow">HEAD → main → commit</div>
-                        </div>
-                        <div class="detach-arrow">↓</div>
-                        <div class="detach-state detached">
-                            <div class="detach-label">Detached State</div>
-                            <div class="detach-flow">HEAD → commit (no branch)</div>
-                        </div>
-                    </div>
-                    <div class="detach-warning">
-                        ⚠️ <strong>Warning:</strong> In detached HEAD state, commits are not attached to any branch and may be lost if not saved.
                     </div>
                 </div>
             </div>
@@ -3050,7 +2697,80 @@
             
             // Initialize storage areas
             updateStorageAreas();
+            
+            // Initialize branch index
+            updateBranchIndex();
+            
+            // Initialize git status display
+            updateGitStatusDisplay();
+            
+            // Initialize TOC functionality
+            initializeTOC();
         });
+        
+        // Table of Contents functionality
+        function initializeTOC() {
+            // Add smooth scrolling to all TOC links
+            const tocLinks = document.querySelectorAll('.toc-link');
+            tocLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        // Smooth scroll to target
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        
+                        // Update active state
+                        updateActiveTOCItem(targetId);
+                    }
+                });
+            });
+            
+            // Update active TOC item on scroll
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -70% 0px',
+                threshold: 0
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        if (id && id.startsWith('git-')) {
+                            updateActiveTOCItem(id);
+                        }
+                    }
+                });
+            }, observerOptions);
+            
+            // Observe all command documentation sections
+            const commandDocs = document.querySelectorAll('.command-doc[id^="git-"]');
+            commandDocs.forEach(doc => observer.observe(doc));
+        }
+        
+        function updateActiveTOCItem(activeId) {
+            // Remove active class from all TOC items
+            const tocItems = document.querySelectorAll('.toc-item');
+            tocItems.forEach(item => {
+                item.style.background = 'rgba(255, 255, 255, 0.03)';
+                item.style.borderLeftColor = 'transparent';
+            });
+            
+            // Add active class to current item
+            const activeLink = document.querySelector(`.toc-link[href="#${activeId}"]`);
+            if (activeLink) {
+                const activeItem = activeLink.closest('.toc-item');
+                activeItem.style.background = 'rgba(78, 205, 196, 0.15)';
+                activeItem.style.borderLeftColor = '#4ecdc4';
+                activeItem.style.transform = 'translateX(5px)';
+            }
+        }
         
         function initializeEventListeners() {
             // Main command buttons
@@ -3198,6 +2918,8 @@
                 updateTimelineLog(command);
                 updateStorageAreas(); // Update storage areas after each command
                 updateContextualHelp(); // Update contextual help
+                updateBranchIndex(); // Update branch index after each command
+                updateGitStatusDisplay(); // Update git status display after each command
                 
                 // Force timeline update to ensure animation console reflects changes
                 setTimeout(() => {
@@ -3326,6 +3048,8 @@
                 updateTimeline();
                 updateTimelineLog(command);
                 updateStorageAreas(); // Update storage areas after each command
+                updateBranchIndex(); // Update branch index after each command
+                updateGitStatusDisplay(); // Update git status display after each command
                 
                 // Force timeline update to ensure animation console reflects changes
                 setTimeout(() => {
