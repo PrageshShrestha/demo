@@ -130,6 +130,11 @@ class GitTimeline {
     }
 
     createBranch(branchName, fromNodeId = null) {
+        // Check if branch already exists
+        if (this.branches.has(branchName)) {
+            throw new Error(`fatal: a branch named '${branchName}' already exists`);
+        }
+        
         const sourceNodeId = fromNodeId || this.head;
         if (!sourceNodeId) {
             throw new Error('No source node to create branch from');

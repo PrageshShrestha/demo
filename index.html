@@ -52,6 +52,7 @@
             grid-template-columns: 2fr 1fr;
             gap: 20px;
         }
+        
         .timeline-container {
             position: relative;
             height: 60vh;
@@ -79,6 +80,8 @@
         .timeline-container::-webkit-scrollbar-thumb:hover {
             background: rgba(78, 205, 196, 0.7);
         }
+        
+        .branch-visualizer {
             position: absolute;
             top: 0;
             left: 0;
@@ -108,18 +111,14 @@
             background: rgba(20, 30, 48, 0.6);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(100, 150, 255, 0.2);
-            height: 400px;
-            margin-top: 30px;
-            overflow-y: auto;
+            height:44vh;
+            overflow-y:scroll;
         }
         
         .timeline-log-container h3 {
             color: #4ecdc4;
             margin: 0 0 20px 0;
             font-size: 1.1rem;
-            border-bottom: 2px solid rgba(78, 205, 196, 0.3);
-            padding-bottom: 10px;
         }
         
         .timeline-log {
@@ -134,87 +133,197 @@
             top: 0;
             bottom: 0;
             width: 2px;
-            background: linear-gradient(180deg, #4ecdc4, #764ba2);
+            background: rgba(78, 205, 196, 0.3);
+        }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .welcome-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+        }
+        
+        .welcome-description {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+        
+        .command-example {
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+        
+        .command-example code {
+            color: #4ecdc4;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(78, 205, 196, 0.5);
+        }
+        
+        .welcome-features {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #d0d0d0;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            background: rgba(78, 205, 196, 0.1);
+            border-color: rgba(78, 205, 196, 0.3);
+            transform: translateY(-2px);
         }
         
         .log-entry {
             position: relative;
             margin-bottom: 20px;
             padding: 15px;
-            background: rgba(30, 40, 60, 0.4);
-            border-radius: 10px;
-            border-left: 4px solid #4ecdc4;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             transition: all 0.3s ease;
+            margin-left: 20px;
         }
         
         .log-entry:hover {
-            background: rgba(30, 40, 60, 0.6);
-            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(78, 205, 196, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         
         .log-entry::before {
             content: '';
             position: absolute;
             left: -23px;
-            top: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background: #4ecdc4;
-            border: 2px solid rgba(15, 25, 40, 0.8);
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
             z-index: 1;
-        }
-        
-        .log-entry.commit {
-            border-left-color: #51cf66;
         }
         
         .log-entry.commit::before {
             background: #51cf66;
-        }
-        
-        .log-entry.branch {
-            border-left-color: #ff9ff3;
+            box-shadow: 0 0 10px rgba(81, 207, 102, 0.5);
         }
         
         .log-entry.branch::before {
             background: #ff9ff3;
-        }
-        
-        .log-entry.merge {
-            border-left-color: #feca57;
+            box-shadow: 0 0 10px rgba(255, 159, 243, 0.5);
         }
         
         .log-entry.merge::before {
             background: #feca57;
-        }
-        
-        .log-entry.remote {
-            border-left-color: #ff6b6b;
+            box-shadow: 0 0 10px rgba(254, 202, 87, 0.5);
         }
         
         .log-entry.remote::before {
             background: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        .log-entry.error::before {
+            background: #F44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+        
+        .log-entry.info::before {
+            background: #2196F3;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+        
+        .log-entry.init::before {
+            background: #4ecdc4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+        
+        .log-entry.clone::before {
+            background: #48dbfb;
+            box-shadow: 0 0 10px rgba(72, 219, 251, 0.5);
+        }
+        
+        .log-entry.pull::before {
+            background: #1dd1a1;
+            box-shadow: 0 0 10px rgba(29, 209, 161, 0.5);
+        }
+        
+        .log-entry.push::before {
+            background: #ff6348;
+            box-shadow: 0 0 10px rgba(255, 99, 72, 0.5);
+        }
+        
+        .log-entry.config::before {
+            background: #9c27b0;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
+        }
+        
+        .log-entry.reset::before {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+        }
+        
+        .log-entry.detach::before {
+            background: #ff5722;
+            box-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
         }
         
         .log-time {
             font-size: 0.8rem;
             color: #96ceb4;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .log-command {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #74c0fc;
-            margin-bottom: 5px;
             font-family: 'Courier New', monospace;
+            font-weight: 500;
+            margin-bottom: 8px;
+            background: rgba(116, 192, 252, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
         }
         
         .log-description {
-            font-size: 0.85rem;
             color: #e0e0e0;
-            line-height: 1.4;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+        
+        .log-description:last-child {
+            margin-bottom: 0;
         }
         
         .no-logs {
@@ -386,8 +495,6 @@
         
         .auxiliary-commands {
             background: rgba(10, 25, 41, 0.6);
-        .auxiliary-commands {
-            background: rgba(10, 25, 41, 0.6);
             border-radius: 10px;
             padding: 15px;
             min-height: 100px;
@@ -417,7 +524,73 @@
             border-radius: 6px;
             transition: all 0.2s ease;
         }
-
+        
+        .help-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(2px);
+        }
+        
+        .help-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .help-text {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .help-text code {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+        }
+        
+        .help-toggle {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+        
+        .help-toggle:hover {
+            background: rgba(78, 205, 196, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .auxiliary-commands h4 {
+            color: #96ceb4;
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .aux-cmd-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            background: rgba(40, 50, 70, 0.4);
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        
+        .aux-cmd-btn:hover {
+            background: rgba(78, 205, 196, 0.15);
+            border-color: rgba(78, 205, 196, 0.5);
+        }
+        
         .graph-control-btn {
             display: block;
             width: 100%;
@@ -477,6 +650,824 @@
             backdrop-filter: blur(10px);
             z-index: 100;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Documentation Section Styles */
+        .documentation-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 60px 20px;
+            margin-top: 40px;
+            border-top: 2px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        .documentation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .documentation-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #4ecdc4;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        .command-doc {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .command-doc:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.2);
+            border-color: rgba(78, 205, 196, 0.3);
+        }
+        
+        .command-title {
+            color: #4ecdc4;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .command-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: #4ecdc4;
+            border-radius: 2px;
+        }
+        
+        .command-description {
+            color: #e0e0e0;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+        
+        .command-syntax {
+            margin-bottom: 25px;
+        }
+        
+        .command-syntax h4 {
+            color: #96ceb4;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .command-syntax code {
+            background: rgba(0, 0, 0, 0.3);
+            color: #ff6b6b;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .command-examples {
+            margin-bottom: 25px;
+        }
+        
+        .command-examples h4 {
+            color: #96ceb4;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .example {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid #4ecdc4;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .example code {
+            color: #feca57;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .example p {
+            color: #b0b0b0;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+        .command-diagram {
+            margin-bottom: 20px;
+        }
+        
+        .command-diagram h4 {
+            color: #96ceb4;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        /* Workflow Diagram */
+        .workflow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .workflow-step {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .workflow-arrow {
+            color: #96ceb4;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Branch Diagram */
+        .branch-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .branch-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .branch-commit {
+            background: rgba(78, 205, 196, 0.2);
+            color: #4ecdc4;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .branch-arrow {
+            color: #96ceb4;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .branch-split {
+            color: #96ceb4;
+            font-size: 2rem;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+        
+        .main-branch .branch-commit {
+            background: rgba(78, 205, 196, 0.3);
+            border-color: rgba(78, 205, 196, 0.5);
+        }
+        
+        .feature-branch .branch-commit {
+            background: rgba(254, 202, 87, 0.2);
+            border-color: rgba(254, 202, 87, 0.3);
+            color: #feca57;
+        }
+        
+        /* Merge Diagram */
+        .merge-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .merge-branch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .merge-label {
+            background: rgba(78, 205, 196, 0.3);
+            color: #4ecdc4;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .merge-commits {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .merge-commit {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .merge-arrow {
+            color: #96ceb4;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .merge-result {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Remote Diagram */
+        .remote-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .remote-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 150px;
+        }
+        
+        .remote-label {
+            color: #4ecdc4;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .remote-commits {
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .remote-arrows {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .remote-arrow {
+            color: #96ceb4;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        /* Config Diagram */
+        .config-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .config-level {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4ecdc4;
+        }
+        
+        .config-label {
+            color: #4ecdc4;
+            font-weight: 500;
+        }
+        
+        .config-desc {
+            color: #b0b0b0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        /* Log Example */
+        .log-example {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry {
+            display: block;
+            padding: 5px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-hash {
+            color: #feca57;
+            font-weight: bold;
+        }
+        
+        .log-message {
+            color: #e0e0e0;
+        }
+        
+        .log-author {
+            color: #96ceb4;
+        }
+        
+        .log-date {
+            color: #b0b0b0;
+        }
+        
+        /* Reset Diagram */
+        .reset-diagram {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .reset-type {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .reset-label {
+            color: #4ecdc4;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .reset-desc {
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        
+        .reset-warning {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            color: #ff6b6b;
+            font-size: 0.9rem;
+        }
+        
+        /* Detach Diagram */
+        .detach-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .detach-state {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detach-label {
+            color: #4ecdc4;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .detach-flow {
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .detach-arrow {
+            color: #96ceb4;
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .detach-warning {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            color: #ff6b6b;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .documentation-section {
+                padding: 40px 15px;
+            }
+            
+            .documentation-title {
+                font-size: 2rem;
+            }
+            
+            .command-doc {
+                padding: 20px;
+            }
+            
+            .workflow-diagram {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .branch-diagram {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .remote-diagram {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .remote-arrows {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .log-entry {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+            
+            .reset-diagram {
+                flex-direction: column;
+            }
+            
+            .merge-diagram {
+                gap: 15px;
+            }
+        }
+        
+        /* Table of Contents Styles */
+        .docs-toc {
+            position: sticky;
+            top: 20px;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        .toc-title {
+            color: #4ecdc4;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+            border-bottom: 2px solid rgba(78, 205, 196, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .toc-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-item:hover {
+            background: rgba(78, 205, 196, 0.1);
+            border-left-color: #4ecdc4;
+            transform: translateX(5px);
+        }
+        
+        .toc-link {
+            display: block;
+            color: #e0e0e0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+        
+        .toc-link:hover {
+            color: #4ecdc4;
+        }
+        
+        .toc-desc {
+            color: #96ceb4;
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+        
+        /* Documentation Layout with TOC */
+        .documentation-section {
+            display: flex;
+            gap: 30px;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            margin-top: 40px;
+            border-top: 2px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        .documentation-container {
+            flex: 1;
+            max-width: 900px;
+        }
+        
+        /* Footer Styles */
+        .site-footer {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+            border-top: 2px solid rgba(78, 205, 196, 0.3);
+            padding: 60px 20px 20px;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .footer-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.2);
+            border-color: rgba(78, 205, 196, 0.3);
+        }
+        
+        .footer-title {
+            color: #4ecdc4;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-description {
+            color: #e0e0e0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .footer-link {
+            color: #96ceb4;
+            text-decoration: none;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .footer-link:hover {
+            color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+            border-color: rgba(78, 205, 196, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .learning-path {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .path-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #4ecdc4;
+        }
+        
+        .step-number {
+            background: #4ecdc4;
+            color: #0f3460;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            color: #e0e0e0;
+            font-size: 0.95rem;
+        }
+        
+        .footer-quote {
+            color: #e0e0e0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-style: italic;
+            font-size: 1rem;
+            border-left: 3px solid #4ecdc4;
+            padding-left: 20px;
+        }
+        
+        .footer-cta {
+            text-align: center;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            color: #0f3460;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a3aa 100%);
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-copyright {
+            color: #96ceb4;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .footer-copyright a {
+            color: #4ecdc4;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-copyright a:hover {
+            color: #96ceb4;
+        }
+        
+        /* Responsive Design for Footer and TOC */
+        @media (max-width: 1024px) {
+            .documentation-section {
+                flex-direction: column;
+            }
+            
+            .docs-toc {
+                position: static;
+                width: 100%;
+                max-height: none;
+                margin-bottom: 30px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .site-footer {
+                padding: 40px 15px 15px;
+            }
+            
+            .footer-section {
+                padding: 20px;
+            }
+            
+            .footer-title {
+                font-size: 1.3rem;
+            }
+            
+            .footer-links {
+                gap: 8px;
+            }
+            
+            .footer-link {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .path-step {
+                padding: 10px;
+            }
+            
+            .step-number {
+                width: 25px;
+                height: 25px;
+                font-size: 0.8rem;
+            }
+            
+            .step-text {
+                font-size: 0.85rem;
+            }
         }
         
         .branch-index-title {
@@ -563,72 +1554,6 @@
             border-radius: 2px;
             min-width: 12px;
             text-align: center;
-        }
-        
-        .help-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(2px);
-        }
-        
-        .help-icon {
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        
-        .help-text {
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-        
-        .help-text code {
-            background: rgba(78, 205, 196, 0.2);
-            color: #4ecdc4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-        }
-        
-        .help-toggle {
-            background: rgba(78, 205, 196, 0.2);
-            border: 1px solid rgba(78, 205, 196, 0.3);
-            color: #4ecdc4;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-        }
-        
-        .help-toggle:hover {
-            background: rgba(78, 205, 196, 0.3);
-            transform: translateY(-1px);
-        }
-        
-        .auxiliary-commands h4 {
-            color: #96ceb4;
-            margin: 0 0 10px 0;
-            font-size: 0.9rem;
-        }
-        
-        .aux-cmd-btn {
-            display: block;
-            width: 100%;
-            padding: 8px 12px;
-            margin-bottom: 5px;
-            border-radius: 6px;
-            border: 1px solid rgba(100, 150, 255, 0.2);
-            background: rgba(40, 50, 70, 0.4);
-            color: #e0e0e0;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-        }
-        
-        .aux-cmd-btn:hover {
-            background: rgba(78, 205, 196, 0.15);
-            border-color: rgba(78, 205, 196, 0.5);
         }
         
         .command-input-container {
@@ -983,7 +1908,6 @@
         .command-init .command-dot { background: #4CAF50; border-color: #2E7D32; }
         .command-add .command-dot { background: #2196F3; border-color: #1565C0; }
         .command-commit .command-dot { background: #FF9800; border-color: #F57C00; }
-                    <button class="main-cmd-btn" data-cmd="detach">git detach</button>
         .command-branch .command-dot { background: #9C27B0; border-color: #6A1B9A; }
         .command-switch .command-dot { background: #E91E63; border-color: #C2185B; }
         .command-merge .command-dot { background: #00BCD4; border-color: #0097A7; }
@@ -1037,19 +1961,17 @@
         
         .command-text {
             color: #96ceb4;
-            // Add welcome message to terminal
-            gitProcessor.addTerminalOutput('🚀 Welcome to Git Timeline Visualizer!', 'info');
-            gitProcessor.addTerminalOutput('', 'info');
-            gitProcessor.addTerminalOutput('Start by initializing a Git repository:', 'info');
-            gitProcessor.addTerminalOutput('  git init', 'success');
-            gitProcessor.addTerminalOutput('', 'info');
-            gitProcessor.addTerminalOutput('Features available:', 'info');
-            gitProcessor.addTerminalOutput('  🌿 Create and switch branches', 'info');
-            gitProcessor.addTerminalOutput('  📝 Make commits and track changes', 'info');
-            gitProcessor.addTerminalOutput('  🔄 Visualize branch operations', 'info');
-            gitProcessor.addTerminalOutput('  📊 See real-time timeline updates', 'info');
-            gitProcessor.addTerminalOutput('', 'info');
-            gitProcessor.addTerminalOutput('Type "git init" to begin...', 'success');
+            font-size: 0.6rem;
+            font-family: monospace;
+        }
+        
+        .no-commits {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
         
         /* Add more styles from the previous HTML file as needed */
         
@@ -1066,9 +1988,11 @@
         
         .timeline-container {
             position: relative;
-            height: 400px;
-            overflow: auto;
-            border-radius: 15px;
+            height:40vh;
+            overflow-y: auto;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             background: rgba(15, 25, 40, 0.3);
             min-width: 800px;
         }
@@ -1087,17 +2011,12 @@
         .branch-visualizer:active {
             cursor: grabbing;
         }
-                <div class="graph-controls">
-                    <button class="graph-control-btn" onclick="zoomIn()">+</button>
-                    <button class="graph-control-btn" onclick="zoomOut()">-</button>
-                    <button class="graph-control-btn" onclick="resetZoom()">⟲</button>
-                    <button class="graph-control-btn" onclick="centerGraph()">⊙</button>
-                </div>
-                <!-- Branch Index in Animation Console -->
-                <div class="branch-index-animation" id="branch-index">
-                    <div class="branch-index-title">🌿 Branch Index</div>
-                    <div class="branch-index-content" id="branch-index-content"></div>
-                </div>
+        
+        .commit-nodes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
             z-index: 2;
             pointer-events: none;
@@ -1160,14 +2079,14 @@
                     <button class="graph-control-btn" onclick="resetZoom()">⟲</button>
                     <button class="graph-control-btn" onclick="centerGraph()">⊙</button>
                 </div>
+                <!-- Branch Index in Animation Console -->
+                <div class="branch-index-animation" id="branch-index">
+                    <div class="branch-index-title">🌿 Branch Index</div>
+                    <div class="branch-index-content" id="branch-index-content"></div>
+                </div>
             </div>
             
             <div class="timeline-log-container">
-                'detach': [
-                    'git detach',
-                    'git checkout HEAD~1', // Alternative way to detach
-                    'git checkout <commit-hash>' // Another way to detach
-                ],
                 <h3>📜 Timeline Log</h3>
                 <div class="timeline-log" id="timeline-log">
                     <div class="no-logs">No Git commands executed yet.</div>
@@ -1223,6 +2142,12 @@
                     <button class="main-cmd-btn" data-cmd="pull">git pull</button>
                     <button class="main-cmd-btn" data-cmd="push">git push</button>
                     <button class="main-cmd-btn" data-cmd="config">git config</button>
+                    <button class="main-cmd-btn" data-cmd="log">git log</button>
+                    <button class="main-cmd-btn" data-cmd="reset">git reset</button>
+                    <button class="main-cmd-btn" data-cmd="clone">git clone</button>
+                    <button class="main-cmd-btn" data-cmd="detach">git detach</button>
+                </div>
+                
                 <div class="auxiliary-commands" id="auxiliary-commands">
                     <!-- Contextual Help Panel -->
                     <div class="contextual-help" id="contextual-help">
@@ -1244,10 +2169,6 @@
                         <!-- Commands will be populated based on context -->
                     </div>
                 </div>
-                    <h4>git init</h4>
-                    <button class="aux-cmd-btn" onclick="executeCommand('git init .')">git init .</button>
-                </div>
-                
                 <!-- <div class="command-input-container">
                     <input type="text" id="git-command" placeholder="Enter Git command..." autocomplete="off">
                     <button class="execute-btn" onclick="executeCommand()">Execute</button>
@@ -1278,6 +2199,824 @@
         </div>
     </div>
 
+    <!-- Git Commands Documentation Section -->
+    <div class="documentation-section">
+        <!-- Table of Contents Sidebar -->
+        <div class="docs-toc">
+            <h3 class="toc-title">📋 Table of Contents</h3>
+            <nav class="toc-nav">
+                <ul class="toc-list">
+                    <li class="toc-item">
+                        <a href="#git-init" class="toc-link">git init</a>
+                        <span class="toc-desc">Initialize repository</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-add" class="toc-link">git add</a>
+                        <span class="toc-desc">Stage files</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-commit" class="toc-link">git commit</a>
+                        <span class="toc-desc">Save changes</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-branch" class="toc-link">git branch</a>
+                        <span class="toc-desc">Manage branches</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-switch" class="toc-link">git switch</a>
+                        <span class="toc-desc">Switch branches</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-merge" class="toc-link">git merge</a>
+                        <span class="toc-desc">Combine branches</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-remote" class="toc-link">git remote</a>
+                        <span class="toc-desc">Manage remotes</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-pull" class="toc-link">git pull</a>
+                        <span class="toc-desc">Fetch changes</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-push" class="toc-link">git push</a>
+                        <span class="toc-desc">Upload changes</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-config" class="toc-link">git config</a>
+                        <span class="toc-desc">Configure Git</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-log" class="toc-link">git log</a>
+                        <span class="toc-desc">View history</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-reset" class="toc-link">git reset</a>
+                        <span class="toc-desc">Undo changes</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-clone" class="toc-link">git clone</a>
+                        <span class="toc-desc">Copy repository</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-detach" class="toc-link">git detach</a>
+                        <span class="toc-desc">Detach HEAD</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="documentation-container">
+            <h2 class="documentation-title">📚 Git Commands Documentation</h2>
+            
+            <!-- Git Init Documentation -->
+            <h2 class="documentation-title">📚 Git Commands Documentation</h2>
+            
+            <div class="docs-intro">
+                <h3>🎯 Understanding Git Commands</h3>
+                <p>Git commands are the building blocks of version control. Each command serves a specific purpose in managing your codebase history, branches, and collaborations. Below you'll find detailed explanations of what each command actually does, not just how to use it.</p>
+            </div>
+            
+            <!-- Git Init Documentation -->
+            <div class="command-doc" id="git-init">
+                <h3 class="command-title">git init</h3>
+                <div class="command-description">
+                    <p><strong>What it actually does:</strong> Creates a new Git repository by initializing a hidden <code>.git</code> directory in your project folder. This directory contains all the metadata and object database that Git uses to track changes, manage branches, and maintain your complete project history.</p>
+                    
+                    <p><strong>Why you need it:</strong> Without <code>git init</code>, your folder is just a regular directory. After running it, Git can track every change, create branches, and maintain a complete history of your project. The <code>.git</code> directory contains:</p>
+                    <ul>
+                        <li><strong>Objects:</strong> Commits, trees, blobs, and tags that store your actual data</li>
+                        <li><strong>References:</strong> Branch pointers and tags that point to specific commits</li>
+                        <li><strong>Configuration:</strong> Repository settings and user preferences</li>
+                        <li><strong>Index:</strong> Staging area for preparing commits</li>
+                    </ul>
+                    
+                    <p><strong>When to use:</strong> Use this once per project when starting version control. You can also run it in an existing directory to start tracking changes, or run it again to reinitialize (which won't affect your existing work).</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git init [&lt;directory&gt;]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git init</code>
+                        <p>Initialize repository in current directory</p>
+                    </div>
+                    <div class="example">
+                        <code>git init my-project</code>
+                        <p>Initialize repository in "my-project" directory</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Empty Directory</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git init</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">.git/ directory created</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Ready for version control</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Add Documentation -->
+            <div class="command-doc" id="git-add">
+                <h3 class="command-title">git add</h3>
+                <div class="command-description">
+                    <p>Add file contents to the staging area for the next commit.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git add &lt;file&gt;...</code><br>
+                    <code>git add .</code><br>
+                    <code>git add *.extension</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git add app.js</code>
+                        <p>Add specific file to staging area</p>
+                    </div>
+                    <div class="example">
+                        <code>git add .</code>
+                        <p>Add all files in current directory</p>
+                    </div>
+                    <div class="example">
+                        <code>git add *.js</code>
+                        <p>Add all JavaScript files</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Working Directory</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git add</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Staging Area</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Ready to commit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Commit Documentation -->
+            <div class="command-doc" id="git-commit">
+                <h3 class="command-title">git commit</h3>
+                <div class="command-description">
+                    <p>Record changes to the repository with a descriptive message.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git commit -m "&lt;message&gt;"</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git commit -m "Add user authentication"</code>
+                        <p>Commit with descriptive message</p>
+                    </div>
+                    <div class="example">
+                        <code>git commit -m "Fix bug in login form"</code>
+                        <p>Commit bug fix</p>
+                    </div>
+                    <div class="example">
+                        <code>git commit -m "Update documentation"</code>
+                        <p>Commit documentation changes</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Staging Area</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git commit</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Local Repository</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Permanent snapshot</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Branch Documentation -->
+            <div class="command-doc" id="git-branch">
+                <h3 class="command-title">git branch</h3>
+                <div class="command-description">
+                    <p>Create, list, rename, or delete branches in your repository.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git branch</code><br>
+                    <code>git branch &lt;branch-name&gt;</code><br>
+                    <code>git branch -d &lt;branch-name&gt;</code><br>
+                    <code>git branch -m &lt;old&gt; &lt;new&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git branch</code>
+                        <p>List all branches</p>
+                    </div>
+                    <div class="example">
+                        <code>git branch design_codes</code>
+                        <p>Create new branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git branch -d feature-old</code>
+                        <p>Delete branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git branch -m old-name new-name</code>
+                        <p>Rename branch</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Branch Workflow:</h4>
+                    <div class="branch-diagram">
+                        <div class="branch-line main-branch">
+                            <div class="branch-commit">main</div>
+                            <div class="branch-arrow">→</div>
+                            <div class="branch-commit">commit1</div>
+                            <div class="branch-arrow">→</div>
+                            <div class="branch-commit">commit2</div>
+                        </div>
+                        <div class="branch-split">↘</div>
+                        <div class="branch-line feature-branch">
+                            <div class="branch-commit">feature</div>
+                            <div class="branch-arrow">→</div>
+                            <div class="branch-commit">feat1</div>
+                            <div class="branch-arrow">→</div>
+                            <div class="branch-commit">feat2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Switch Documentation -->
+            <div class="command-doc" id="git-switch">
+                <h3 class="command-title">git switch</h3>
+                <div class="command-description">
+                    <p>Switch between branches or restore working tree files.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git switch &lt;branch-name&gt;</code><br>
+                    <code>git switch -c &lt;new-branch&gt;</code><br>
+                    <code>git switch -</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git switch main</code>
+                        <p>Switch to main branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git switch design_codes</code>
+                        <p>Switch to design_codes branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git switch -c new-feature</code>
+                        <p>Create and switch to new branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git switch -</code>
+                        <p>Switch to previous branch</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Switching Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Current Branch</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git switch target</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">HEAD moves to target</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Working files updated</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Merge Documentation -->
+            <div class="command-doc" id="git-merge">
+                <h3 class="command-title">git merge</h3>
+                <div class="command-description">
+                    <p>Join two or more development histories together.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git merge &lt;branch-name&gt;</code><br>
+                    <code>git merge --abort</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git merge design_codes</code>
+                        <p>Merge design_codes into current branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git merge logic_codes</code>
+                        <p>Merge logic_codes into current branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git merge --abort</code>
+                        <p>Abort merge in progress</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Merge Workflow:</h4>
+                    <div class="merge-diagram">
+                        <div class="merge-branch">
+                            <div class="merge-label">main</div>
+                            <div class="merge-commits">
+                                <div class="merge-commit">A</div>
+                                <div class="merge-arrow">→</div>
+                                <div class="merge-commit">B</div>
+                            </div>
+                        </div>
+                        <div class="merge-branch">
+                            <div class="merge-label">feature</div>
+                            <div class="merge-commits">
+                                <div class="merge-commit">A</div>
+                                <div class="merge-arrow">→</div>
+                                <div class="merge-commit">C</div>
+                                <div class="merge-arrow">→</div>
+                                <div class="merge-commit">D</div>
+                            </div>
+                        </div>
+                        <div class="merge-result">
+                            <div class="merge-arrow">↓</div>
+                            <div class="merge-label">merge</div>
+                            <div class="merge-arrow">↓</div>
+                            <div class="merge-commit">M</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Remote Documentation -->
+            <div class="command-doc" id="git-remote">
+                <h3 class="command-title">git remote</h3>
+                <div class="command-description">
+                    <p>Manage remote repositories for pushing and pulling changes.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git remote -v</code><br>
+                    <code>git remote add &lt;name&gt; &lt;url&gt;</code><br>
+                    <code>git remote remove &lt;name&gt;</code><br>
+                    <code>git remote set-url &lt;name&gt; &lt;url&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git remote -v</code>
+                        <p>List all remotes with URLs</p>
+                    </div>
+                    <div class="example">
+                        <code>git remote add origin https://github.com/user/repo.git</code>
+                        <p>Add new remote repository</p>
+                    </div>
+                    <div class="example">
+                        <code>git remote remove origin</code>
+                        <p>Remove remote repository</p>
+                    </div>
+                    <div class="example">
+                        <code>git remote set-url origin https://github.com/user/new-repo.git</code>
+                        <p>Change remote URL</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Remote Workflow:</h4>
+                    <div class="remote-diagram">
+                        <div class="remote-box local">
+                            <div class="remote-label">Local Repository</div>
+                            <div class="remote-commits">A → B → C</div>
+                        </div>
+                        <div class="remote-arrows">
+                            <div class="remote-arrow push">push ↑</div>
+                            <div class="remote-arrow pull">pull ↓</div>
+                        </div>
+                        <div class="remote-box remote">
+                            <div class="remote-label">Remote Repository</div>
+                            <div class="remote-commits">A → B → C</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Pull Documentation -->
+            <div class="command-doc" id="git-pull">
+                <h3 class="command-title">git pull</h3>
+                <div class="command-description">
+                    <p>Fetch from and integrate with another repository or local branch.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git pull</code><br>
+                    <code>git pull &lt;remote&gt; &lt;branch&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git pull</code>
+                        <p>Pull from default remote and branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git pull origin main</code>
+                        <p>Pull main branch from origin</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Pull Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Remote Repository</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git pull</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Fetch changes</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Merge with local</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Push Documentation -->
+            <div class="command-doc" id="git-push">
+                <h3 class="command-title">git push</h3>
+                <div class="command-description">
+                    <p>Update remote repository with local commits.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git push</code><br>
+                    <code>git push &lt;remote&gt; &lt;branch&gt;</code><br>
+                    <code>git push --force</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git push</code>
+                        <p>Push to default remote and branch</p>
+                    </div>
+                    <div class="example">
+                        <code>git push origin main</code>
+                        <p>Push main branch to origin</p>
+                    </div>
+                    <div class="example">
+                        <code>git push --force origin main</code>
+                        <p>Force push (overwrites remote history)</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Push Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Local Repository</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git push</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Send commits</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Remote updated</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Config Documentation -->
+            <div class="command-doc" id="git-config">
+                <h3 class="command-title">git config</h3>
+                <div class="command-description">
+                    <p>Get and set repository or global configuration options.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git config --global user.name "&lt;name&gt;"</code><br>
+                    <code>git config --global user.email "&lt;email&gt;"</code><br>
+                    <code>git config --get &lt;option&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git config --global user.name "John Doe"</code>
+                        <p>Set global user name</p>
+                    </div>
+                    <div class="example">
+                        <code>git config --global user.email "john@example.com"</code>
+                        <p>Set global user email</p>
+                    </div>
+                    <div class="example">
+                        <code>git config --get user.name</code>
+                        <p>Get user name</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Config Levels:</h4>
+                    <div class="config-diagram">
+                        <div class="config-level">
+                            <div class="config-label">System</div>
+                            <div class="config-desc">/etc/gitconfig</div>
+                        </div>
+                        <div class="config-level">
+                            <div class="config-label">Global</div>
+                            <div class="config-desc">~/.gitconfig</div>
+                        </div>
+                        <div class="config-level">
+                            <div class="config-label">Local</div>
+                            <div class="config-desc">.git/config</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Log Documentation -->
+            <div class="command-doc" id="git-log">
+                <h3 class="command-title">git log</h3>
+                <div class="command-description">
+                    <p>Show commit logs and find specific commits.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git log</code><br>
+                    <code>git log --oneline</code><br>
+                    <code>git log -n &lt;number&gt;</code><br>
+                    <code>git log --graph</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git log</code>
+                        <p>Show detailed commit history</p>
+                    </div>
+                    <div class="example">
+                        <code>git log --oneline</code>
+                        <p>Show compact commit history</p>
+                    </div>
+                    <div class="example">
+                        <code>git log -n 5</code>
+                        <p>Show last 5 commits</p>
+                    </div>
+                    <div class="example">
+                        <code>git log --graph</code>
+                        <p>Show commit history with graph</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Log Output:</h4>
+                    <div class="log-example">
+                        <div class="log-entry">
+                            <div class="log-hash">abc1234</div>
+                            <div class="log-message">Add user authentication</div>
+                            <div class="log-author">John Doe</div>
+                            <div class="log-date">2024-01-15</div>
+                        </div>
+                        <div class="log-entry">
+                            <div class="log-hash">def5678</div>
+                            <div class="log-message">Fix login bug</div>
+                            <div class="log-author">John Doe</div>
+                            <div class="log-date">2024-01-14</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Reset Documentation -->
+            <div class="command-doc" id="git-reset">
+                <h3 class="command-title">git reset</h3>
+                <div class="command-description">
+                    <p>Reset current HEAD to a specified state. Affects local repository only.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git reset --soft HEAD~1</code><br>
+                    <code>git reset HEAD~1</code><br>
+                    <code>git reset --hard HEAD~1</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git reset --soft HEAD~1</code>
+                        <p>Reset but keep changes staged</p>
+                    </div>
+                    <div class="example">
+                        <code>git reset HEAD~1</code>
+                        <p>Reset and unstage changes</p>
+                    </div>
+                    <div class="example">
+                        <code>git reset --hard HEAD~1</code>
+                        <p>Reset and discard all changes</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Reset Types:</h4>
+                    <div class="reset-diagram">
+                        <div class="reset-type">
+                            <div class="reset-label">--soft</div>
+                            <div class="reset-desc">Commit → Staged</div>
+                        </div>
+                        <div class="reset-type">
+                            <div class="reset-label">(default)</div>
+                            <div class="reset-desc">Staged → Working</div>
+                        </div>
+                        <div class="reset-type">
+                            <div class="reset-label">--hard</div>
+                            <div class="reset-desc">All changes discarded</div>
+                        </div>
+                    </div>
+                    <div class="reset-warning">
+                        ⚠️ <strong>Note:</strong> Reset only affects local repository. Remote repository remains unchanged.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Clone Documentation -->
+            <div class="command-doc" id="git-clone">
+                <h3 class="command-title">git clone</h3>
+                <div class="command-description">
+                    <p>Clone a repository into a new directory.</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git clone &lt;repository-url&gt;</code><br>
+                    <code>git clone &lt;repository-url&gt; &lt;directory&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git clone https://github.com/user/repo.git</code>
+                        <p>Clone repository into new directory</p>
+                    </div>
+                    <div class="example">
+                        <code>git clone https://github.com/user/repo.git my-project</code>
+                        <p>Clone into specific directory</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Clone Workflow:</h4>
+                    <div class="workflow-diagram">
+                        <div class="workflow-step">Remote Repository</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">git clone</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Download all data</div>
+                        <div class="workflow-arrow">→</div>
+                        <div class="workflow-step">Local copy created</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Detach Documentation -->
+            <div class="command-doc" id="git-detach">
+                <h3 class="command-title">git detach</h3>
+                <div class="command-description">
+                    <p>Detach HEAD to point directly to a commit (detached HEAD state).</p>
+                </div>
+                
+                <div class="command-syntax">
+                    <h4>Syntax:</h4>
+                    <code>git detach</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <div class="example">
+                        <code>git detach</code>
+                        <p>Detach HEAD to current commit</p>
+                    </div>
+                </div>
+                
+                <div class="command-diagram">
+                    <h4>Detached HEAD State:</h4>
+                    <div class="detach-diagram">
+                        <div class="detach-state normal">
+                            <div class="detach-label">Normal State</div>
+                            <div class="detach-flow">HEAD → main → commit</div>
+                        </div>
+                        <div class="detach-arrow">↓</div>
+                        <div class="detach-state detached">
+                            <div class="detach-label">Detached State</div>
+                            <div class="detach-flow">HEAD → commit (no branch)</div>
+                        </div>
+                    </div>
+                    <div class="detach-warning">
+                        ⚠️ <strong>Warning:</strong> In detached HEAD state, commits are not attached to any branch and may be lost if not saved.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-title">🌱 Git Beginner Resources</h3>
+                <p class="footer-description">
+                    This interactive Git Timeline Visualizer is designed to help you understand Git version control through hands-on learning. 
+                    Don't let curiosity limit your exploration of Git's powerful capabilities!
+                </p>
+                <div class="footer-links">
+                    <a href="https://git-scm.com/doc" target="_blank" rel="noopener noreferrer" class="footer-link">
+                        📚 Official Git Documentation
+                    </a>
+                    <a href="https://git-scm.com/book" target="_blank" rel="noopener noreferrer" class="footer-link">
+                        📖 Pro Git Book
+                    </a>
+                    <a href="https://github.com/git/git" target="_blank" rel="noopener noreferrer" class="footer-link">
+                        🔧 Git Source Code
+                    </a>
+                    <a href="https://git-scm.com/docs/gittutorial" target="_blank" rel="noopener noreferrer" class="footer-link">
+                        🎓 Git Tutorial
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title">💡 Learning Path</h3>
+                <div class="learning-path">
+                    <div class="path-step">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Start with basic commands (init, add, commit)</span>
+                    </div>
+                    <div class="path-step">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Explore branching and merging</span>
+                    </div>
+                    <div class="path-step">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Learn remote operations</span>
+                    </div>
+                    <div class="path-step">
+                        <span class="step-number">4</span>
+                        <span class="step-text">Master advanced workflows</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3 class="footer-title">🚀 Continue Your Journey</h3>
+                <p class="footer-quote">
+                    "Git is not just a tool, it's a way of thinking about version control. 
+                    Keep exploring, keep learning, and don't be afraid to experiment!"
+                </p>
+                <div class="footer-cta">
+                    <a href="https://git-scm.com/community" target="_blank" rel="noopener noreferrer" class="cta-button">
+                        Join Git Community
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p class="footer-copyright">
+                Made with ❤️ for Git learners everywhere | 
+                <a href="https://git-scm.com" target="_blank" rel="noopener noreferrer">git-scm.com</a>
+            </p>
+        </div>
+    </footer>
+
     <!-- Import browser-compatible core modules -->
     <script src="git-timeline-browser.js"></script>
     <script src="git-command-processor-browser.js"></script>
@@ -1294,9 +3033,19 @@
             // Initialize event listeners
             initializeEventListeners();
             
-            // Add initial welcome message
-            gitProcessor.addTerminalOutput('Git Timeline Visualizer initialized.', 'info');
-            gitProcessor.addTerminalOutput('Type "git init" to start or use quick commands.', 'info');
+            // Add welcome message to terminal
+            gitProcessor.addTerminalOutput('🚀 Welcome to Git Timeline Visualizer!', 'info');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Start by initializing a Git repository:', 'info');
+            gitProcessor.addTerminalOutput('  git init', 'success');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Features available:', 'info');
+            gitProcessor.addTerminalOutput('  🌿 Create and switch branches', 'info');
+            gitProcessor.addTerminalOutput('  📝 Make commits and track changes', 'info');
+            gitProcessor.addTerminalOutput('  🔄 Visualize branch operations', 'info');
+            gitProcessor.addTerminalOutput('  📊 See real-time timeline updates', 'info');
+            gitProcessor.addTerminalOutput('', 'info');
+            gitProcessor.addTerminalOutput('Type "git init" to begin...', 'success');
             updateTerminal();
             
             // Initialize storage areas
@@ -1352,6 +3101,85 @@
             });
         }
         
+        function getAuxiliaryCommands(mainCmd) {
+            const sessionData = window.gitProcessor.sessionData;
+            
+            const commands = {
+                'init': ['git init .'],
+                'add': [
+                    'git add .',
+                    'git add ' + (sessionData.lastFileName || ''),
+                    'git add *.py',
+                    'git add *.js',
+                    'git add *.html'
+                ],
+                'commit': [
+                    'git commit -m "' + (sessionData.lastCommitMessage || '') + '"',
+                    'git commit -m "Fix bug"',
+                    'git commit -m "Add new feature"',
+                    'git commit -m "Update documentation"'
+                ],
+                'branch': [
+                    'git branch',
+                    'git branch ' + (sessionData.lastBranchName || ''),
+                    'git branch -d ' + (sessionData.lastBranchName || ''),
+                    'git branch -m old new'
+                ],
+                'switch': [
+                    'git switch ' + (sessionData.lastBranchName || ''),
+                    'git switch -c ' + (sessionData.lastBranchName || '') + '-new',
+                    'git switch ~',
+                    'git switch main'
+                ],
+                'merge': [
+                    'git merge ' + (sessionData.lastBranchName || ''),
+                    'git merge --abort'
+                ],
+                'remote': [
+                    'git remote -v',
+                    'git remote add origin ' + (sessionData.lastRemoteUrl || ''),
+                    'git remote remove origin',
+                    'git remote set-url origin ' + (sessionData.lastRemoteUrl || '')
+                ],
+                'pull': [
+                    'git pull',
+                    'git pull origin main',
+                    'git pull origin ' + (sessionData.lastBranchName || '')
+                ],
+                'push': [
+                    'git push origin main',
+                    'git push origin ' + (sessionData.lastBranchName || ''),
+                    'git push -u origin main'
+                ],
+                'config': [
+                    'git config --global user.name "' + (sessionData.lastUserName || '') + '"',
+                    'git config --global user.email "' + (sessionData.lastUserEmail || '') + '"',
+                    'git config --global user.name "Your Name"',
+                    'git config --global user.email "your.email@example.com"'
+                ],
+                'log': [
+                    'git log --oneline',
+                    'git log -n 5',
+                    'git log --graph'
+                ],
+                'reset': [
+                    'git reset HEAD~1',
+                    'git reset --soft HEAD~1'
+                ],
+                'clone': [
+                    'git clone ' + (sessionData.lastRemoteUrl || ''),
+                    'git clone https://github.com/user/repo.git'
+                ],
+                'detach': [
+                    'git detach',
+                    'git checkout HEAD~1', // Alternative way to detach
+                    'git checkout <commit-hash>' // Another way to detach
+                ],
+            };
+            
+            return commands[mainCmd] || [];
+        }
+        
 
         // Contextual Help System
         function updateContextualHelp() {
@@ -1362,10 +3190,6 @@
             const stagedFiles = window.gitProcessor.sessionData.stagedFiles;
             const committedFiles = window.gitProcessor.sessionData.committedFiles;
             const branches = Array.from(window.gitProcessor.timeline.branches.keys());
-            
-            const helpContent = document.getElementById('help-content');
-            const suggestedCommands = document.getElementById('suggested-commands');
-            
         async function executeCommand(command) {
             if (window.gitProcessor) {
                 await window.gitProcessor.processCommand(command);
@@ -1381,6 +3205,13 @@
                 }, 100);
             }
         }
+            
+            if (!hasRepo) {
+                helpHTML += `
+                    <div class="help-item">
+                        <span class="help-icon">🚀</span>
+                        <div class="help-text">
+                            <strong>Getting Started:</strong> Initialize your repository with <code>git init</code>
                         </div>
                     </div>
                     <div class="help-item">
@@ -1469,7 +3300,7 @@
                     <button class="aux-cmd-btn" onclick="executeCommand('git log --oneline')">git log --oneline</button>`;
             }
             
-                this.branchSpacing = 120; // Increased from 80 to prevent HEAD overlap
+            helpContent.innerHTML = helpHTML;
             suggestedCommands.innerHTML = suggestedHTML;
         }
         
@@ -1488,80 +3319,6 @@
                 updateContextualHelp();
             }, 200);
         }
-        function getAuxiliaryCommands(mainCmd) {
-            const sessionData = window.gitProcessor.sessionData;
-            
-            const commands = {
-                'init': ['git init .'],
-                'add': [
-                    'git add .',
-                    'git add ' + (sessionData.lastFileName || ''),
-                    'git add *.py',
-                    'git add *.js',
-                    'git add *.html'
-                ],
-                'commit': [
-                    'git commit -m "' + (sessionData.lastCommitMessage || '') + '"',
-                    'git commit -m "Fix bug"',
-                    'git commit -m "Add new feature"',
-                    'git commit -m "Update documentation"'
-                ],
-                'branch': [
-                    'git branch',
-                    'git branch ' + (sessionData.lastBranchName || ''),
-                    'git branch -d ' + (sessionData.lastBranchName || ''),
-                    'git branch -m old new'
-                ],
-                'switch': [
-                    'git switch ' + (sessionData.lastBranchName || ''),
-                    'git switch -c ' + (sessionData.lastBranchName || '') + '-new',
-                    'git switch ~',
-                    'git switch main'
-                ],
-                'merge': [
-                    'git merge ' + (sessionData.lastBranchName || ''),
-                    'git merge --abort'
-                ],
-                'remote': [
-                    'git remote -v',
-                    'git remote add origin ' + (sessionData.lastRemoteUrl || ''),
-                    'git remote remove origin',
-                    'git remote set-url origin ' + (sessionData.lastRemoteUrl || '')
-                ],
-                'pull': [
-                    'git pull',
-                    'git pull origin main',
-                    'git pull origin ' + (sessionData.lastBranchName || '')
-                ],
-                'push': [
-                    'git push origin main',
-                    'git push origin ' + (sessionData.lastBranchName || ''),
-                    'git push -u origin main'
-                ],
-                'config': [
-                    'git config --global user.name "' + (sessionData.lastUserName || '') + '"',
-                    'git config --global user.email "' + (sessionData.lastUserEmail || '') + '"',
-                    'git config --global user.name "Your Name"',
-                    'git config --global user.email "your.email@example.com"'
-                ],
-                'log': [
-                    'git log --oneline',
-                    'git log -n 5',
-                    'git log --graph'
-                ],
-                'reset': [
-                    'git reset HEAD~1',
-                    'git reset --soft HEAD~1'
-                ],
-                'clone': [
-                    'git clone ' + (sessionData.lastRemoteUrl || ''),
-                    'git clone https://github.com/user/repo.git'
-                ]
-            };
-            
-            return commands[mainCmd] || [];
-        }
-        
         async function executeCommand(command) {
             if (window.gitProcessor) {
                 await window.gitProcessor.processCommand(command);
@@ -1569,6 +3326,11 @@
                 updateTimeline();
                 updateTimelineLog(command);
                 updateStorageAreas(); // Update storage areas after each command
+                
+                // Force timeline update to ensure animation console reflects changes
+                setTimeout(() => {
+                    updateTimeline();
+                }, 100);
             }
         }
         
@@ -1593,12 +3355,94 @@
             const timelineLog = document.getElementById('timeline-log');
             if (!timelineLog) return;
             
-            // Get the most recent timeline data
+            // Check if there's stored error data from the processor
+            if (window.gitProcessor && window.gitProcessor.lastLogData && window.gitProcessor.lastLogData.type === 'error') {
+                const logData = window.gitProcessor.lastLogData;
+                
+                // Create error log entry
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry error`;
+                
+                const time = new Date().toLocaleTimeString();
+                
+                logEntry.innerHTML = `
+                    <div class="log-time">${time}</div>
+                    <div class="log-command">${command}</div>
+                    <div class="log-description">${logData.description}</div>
+                    <div class="log-description" style="font-size: 0.8em; color: #999; margin-top: 4px;">${logData.details}</div>
+                `;
+                
+                // Remove the "no logs" message if it exists
+                const noLogs = timelineLog.querySelector('.no-logs');
+                if (noLogs) {
+                    noLogs.remove();
+                }
+                
+                // Add the error entry at the top
+                timelineLog.insertBefore(logEntry, timelineLog.firstChild);
+                
+                // Clear the stored error data
+                window.gitProcessor.lastLogData = null;
+                
+                // Limit to 20 most recent entries
+                const entries = timelineLog.querySelectorAll('.log-entry');
+                if (entries.length > 20) {
+                    entries[entries.length - 1].remove();
+                }
+                
+                return;
+            }
+            
+            // Check if there are any timeline nodes OR if there have been any commands processed
             const timelineData = window.gitProcessor.timeline.getTimelineData();
             const allNodes = Array.from(timelineData.nodes.values());
             
-            if (allNodes.length === 0) {
+            // Also check if we have any terminal output (indicating commands were attempted)
+            const terminalOutputData = window.gitProcessor.getTerminalOutput();
+            const hasCommands = terminalOutputData.length > 0;
+            
+            if (allNodes.length === 0 && !hasCommands) {
                 timelineLog.innerHTML = '<div class="no-logs">No Git commands executed yet.</div>';
+                return;
+            }
+            
+            // If there are no nodes but there are commands (like errors), show a message
+            if (allNodes.length === 0 && hasCommands) {
+                // Look for the last command that might have failed
+                const lastTerminalEntry = terminalOutputData[terminalOutputData.length - 1];
+                if (lastTerminalEntry && lastTerminalEntry.type === 'error') {
+                    // This is already handled by the error case above
+                    return;
+                }
+                
+                // If no nodes but commands exist, show a message
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry info`;
+                
+                const time = new Date().toLocaleTimeString();
+                
+                logEntry.innerHTML = `
+                    <div class="log-time">${time}</div>
+                    <div class="log-command">${command}</div>
+                    <div class="log-description">ℹ️ Command processed - No timeline nodes created</div>
+                    <div class="log-description" style="font-size: 0.8em; color: #999; margin-top: 4px;">This command doesn't create timeline entries</div>
+                `;
+                
+                // Remove the "no logs" message if it exists
+                const noLogs = timelineLog.querySelector('.no-logs');
+                if (noLogs) {
+                    noLogs.remove();
+                }
+                
+                // Add the entry at the top
+                timelineLog.insertBefore(logEntry, timelineLog.firstChild);
+                
+                // Limit to 20 most recent entries
+                const entries = timelineLog.querySelectorAll('.log-entry');
+                if (entries.length > 20) {
+                    entries[entries.length - 1].remove();
+                }
+                
                 return;
             }
             
@@ -1855,7 +3699,7 @@
                 this.timelineContainer = document.querySelector('.timeline-container');
                 this.branchYPositions = new Map();
                 this.commitSpacing = 150;
-                this.branchSpacing = 80;
+                this.branchSpacing = 120; // Increased from 80 to prevent HEAD overlap
                 this.currentX = 50;
                 this.nodeElements = new Map();
                 this.edgeElements = new Map();
@@ -1863,9 +3707,14 @@
                     'main': '#4ecdc4',
                     'master': '#4ecdc4', 
                     'develop': '#ff6b6b',
-                    'feature': '#feca57',
-                    'hotfix': '#ff9ff3',
-                    'release': '#54a0ff',
+                    'design_codes': '#2196F3',
+                    'logic_codes': '#9C27B0',
+                    'database_schema': '#FF5722',
+                    'ui_components': '#00BCD4',
+                    'api_endpoints': '#FF9800',
+                    'testing_suite': '#4CAF50',
+                    'documentation': '#795548',
+                    'deployment': '#F44336',
                     'remote': '#48dbfb'
                 };
                 
@@ -1949,11 +3798,12 @@
             }
             
             getBranchColor(branchName) {
-                // Generate color based on branch name hash for consistency
+                // Use the predefined realistic branch colors first
                 if (this.branchColors[branchName]) {
                     return this.branchColors[branchName];
                 }
                 
+                // Generate color based on branch name hash for consistency
                 let hash = 0;
                 for (let i = 0; i < branchName.length; i++) {
                     hash = branchName.charCodeAt(i) + ((hash << 5) - hash);
@@ -1985,6 +3835,9 @@
             }
             
             render(timelineData) {
+                console.log('Main render called, nodes count:', timelineData.nodes.length);
+                console.log('Existing node elements count:', this.nodeElements.size);
+                
                 if (!timelineData.nodes || timelineData.nodes.length === 0) {
                     this.showEmptyState();
                     return;
@@ -1999,6 +3852,9 @@
                 // Group nodes by branch and calculate positions
                 const branchNodes = this.groupNodesByBranch(timelineData.nodes);
                 const nodePositions = this.calculateNodePositions(branchNodes);
+                
+                // Expand canvas to fit all content
+                this.expandCanvasToFit(nodePositions);
                 
                 // Clear and redraw branch lines and edges to ensure visibility
                 this.clearBranchLinesAndEdges();
@@ -2020,6 +3876,43 @@
                 
                 // Focus on the newest node instead of auto-centering
                 this.focusOnNewestNode(timelineData.nodes, nodePositions);
+            }
+            
+            expandCanvasToFit(nodePositions) {
+                if (nodePositions.size === 0) return;
+                
+                // Find the bounds of all positioned nodes
+                let minX = Infinity, maxX = -Infinity;
+                let minY = Infinity, maxY = -Infinity;
+                
+                nodePositions.forEach(pos => {
+                    minX = Math.min(minX, pos.x - 100); // Add padding
+                    maxX = Math.max(maxX, pos.x + 100);
+                    minY = Math.min(minY, pos.y - 100);
+                    maxY = Math.max(maxY, pos.y + 100);
+                });
+                
+                // Calculate required dimensions
+                const width = maxX - minX;
+                const height = maxY - minY;
+                
+                // Update SVG dimensions
+                if (this.svg) {
+                    this.svg.setAttribute('viewBox', `${minX} ${minY} ${width} ${height}`);
+                    this.svg.style.width = `${width}px`;
+                    this.svg.style.height = `${height}px`;
+                }
+                
+                // Update nodes container dimensions
+                if (this.nodesContainer) {
+                    this.nodesContainer.style.width = `${width}px`;
+                    this.nodesContainer.style.height = `${height}px`;
+                    this.nodesContainer.style.position = 'relative'; // Ensure proper positioning
+                }
+                
+                // Don't resize parent containers - only expand the canvas itself
+                // This prevents the terminal/console area from expanding
+                console.log(`Canvas expanded to: ${width}x${height}`);
             }
             
             clearBranchLinesAndEdges() {
@@ -2224,31 +4117,45 @@
                     const color = this.getBranchColor(branchName);
                     
                     let startX = 30;
-                    
-                    // For non-main branches, start line from branch creation point
-                    if (branchName !== 'main') {
-                        const branchCreationNode = nodes.find(n => n.type === 'branch' && n.data.branch === branchName);
-                        if (branchCreationNode) {
-                            const creationPos = nodePositions.get(branchCreationNode.id);
-                            if (creationPos) {
-                                startX = creationPos.x;
-                            }
-                        }
-                    }
-                    
-                    // Find the rightmost position for this branch
                     let rightmostX = startX;
-                    for (const [nodeId, pos] of nodePositions.entries()) {
-                        if (pos.branch === branchName && pos.x > rightmostX) {
-                            rightmostX = pos.x;
+                    
+                    // Find the actual node positions for this branch
+                    const branchNodePositions = [];
+                    nodePositions.forEach((pos, nodeId) => {
+                        if (pos.branch === branchName) {
+                            branchNodePositions.push(pos);
+                            rightmostX = Math.max(rightmostX, pos.x);
                         }
+                    });
+                    
+                    // For non-main branches, start from the first node on that branch
+                    if (branchName !== 'main' && branchNodePositions.length > 0) {
+                        // Sort by x position to find the leftmost node
+                        branchNodePositions.sort((a, b) => a.x - b.x);
+                        startX = branchNodePositions[0].x;
                     }
                     
                     // Check if branch line already exists
                     const existingLine = this.svg.querySelector(`[data-branch="${branchName}"]`);
                     if (existingLine) {
                         // Update existing line to extend further if needed
-                        existingLine.setAttribute('x2', rightmostX + 40);
+                        existingLine.setAttribute('x1', startX);
+                        existingLine.setAttribute('x2', rightmostX + 50); // Extend past last node
+                        existingLine.setAttribute('y1', y);
+                        existingLine.setAttribute('y2', y);
+                        
+                        // Update existing label position to the end
+                        const existingLabel = this.svg.querySelector(`[data-branch-label="${branchName}"]`);
+                        if (existingLabel) {
+                            existingLabel.setAttribute('x', rightmostX + 60);
+                            existingLabel.setAttribute('y', y - 5);
+                            existingLabel.setAttribute('font-size', '14'); // Increased size
+                            existingLabel.setAttribute('stroke', 'white'); // White outline
+                            existingLabel.setAttribute('stroke-width', '1');
+                            existingLabel.setAttribute('stroke-linejoin', 'round');
+                            existingLabel.style.zIndex = '100'; // Ensure visibility
+                            console.log(`Updated branch label ${branchName} position:`, rightmostX + 60, y - 5);
+                        }
                         return;
                     }
                     
@@ -2257,42 +4164,44 @@
                     line.setAttribute('data-branch', branchName); // Mark for future updates
                     line.setAttribute('x1', startX);
                     line.setAttribute('y1', y);
-                    line.setAttribute('x2', rightmostX + 40); // Extend past last node
+                    line.setAttribute('x2', rightmostX + 50); // Extend past last node
                     line.setAttribute('y2', y);
-                    
-                    // Set branch line style based on whether it's the current branch
-                    const currentBranch = window.gitProcessor ? window.gitProcessor.timeline.getCurrentBranch() : 'main';
-                    const isCurrentBranch = branchName === currentBranch;
-                    
-                    if (isCurrentBranch) {
-                        // Current branch: full color, visible
-                        line.setAttribute('stroke', color);
-                        line.setAttribute('stroke-width', '3');
-                        line.setAttribute('opacity', '0.6');
-                        line.style.filter = `drop-shadow(0 0 3px ${color})`;
-                    } else {
-                        // Non-current branch: grey, less visible
-                        line.setAttribute('stroke', '#666');
-                        line.setAttribute('stroke-width', '2');
-                        line.setAttribute('opacity', '0.2');
-                        line.style.filter = 'none';
-                    }
+                    line.setAttribute('stroke', color);
+                    line.setAttribute('stroke-width', '2');
+                    line.setAttribute('stroke-opacity', '0.6');
+                    line.setAttribute('stroke-dasharray', '5,3');
                     
                     this.svg.appendChild(line);
                     
-                    // Add branch label at the right end
+                    // Add branch label at the END of the line (right side)
                     const text = document.createElementNS(svgNS, 'text');
                     text.setAttribute('data-branch-label', branchName);
-                    text.setAttribute('x', rightmostX + 45);
-                    text.setAttribute('y', y);
-                    text.setAttribute('text-anchor', 'start');
-                    text.setAttribute('font-size', '12');
-                    text.setAttribute('font-weight', isCurrentBranch ? 'bold' : 'normal');
-                    text.setAttribute('fill', isCurrentBranch ? color : '#999');
-                    text.style.filter = isCurrentBranch ? `drop-shadow(0 0 3px ${color})` : 'none';
-                    text.textContent = branchName;
+                    text.setAttribute('x', rightmostX + 60); // Position at the end
+                    text.setAttribute('y', y - 5); // Slightly above the line
+                    text.setAttribute('text-anchor', 'start'); // Align from left
+                    text.setAttribute('font-size', '14'); // Increased size for visibility
+                    text.setAttribute('font-family', 'monospace');
+                    text.setAttribute('fill', color);
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('stroke', 'white'); // White outline for contrast
+                    text.setAttribute('stroke-width', '1');
+                    text.setAttribute('stroke-linejoin', 'round');
+                    text.style.pointerEvents = 'none'; // Prevent interference
+                    text.style.zIndex = '100'; // Ensure it's above other elements
+                    
+                    console.log(`Creating branch label for ${branchName} at position:`, rightmostX + 60, y - 5);
+                    
+                    // Add subtle animation for label appearance
+                    text.style.opacity = '0';
+                    text.style.transition = 'opacity 0.3s ease';
                     
                     this.svg.appendChild(text);
+                    
+                    // Animate label appearance
+                    setTimeout(() => {
+                        text.style.opacity = '1';
+                        console.log(`Branch label ${branchName} shown`);
+                    }, 100);
                 });
             }
             
@@ -2311,13 +4220,13 @@
                         // Current branch: full color, visible
                         line.setAttribute('stroke', color);
                         line.setAttribute('stroke-width', '3');
-                        line.setAttribute('opacity', '0.6');
+                        line.setAttribute('stroke-opacity', '1');
                         line.style.filter = `drop-shadow(0 0 3px ${color})`;
                     } else {
                         // Non-current branch: grey, less visible
                         line.setAttribute('stroke', '#666');
                         line.setAttribute('stroke-width', '2');
-                        line.setAttribute('opacity', '0.2');
+                        line.setAttribute('stroke-opacity', '0.3');
                         line.style.filter = 'none';
                     }
                 });
@@ -2359,15 +4268,34 @@
                     const path = document.createElementNS(svgNS, 'path');
                     path.setAttribute('d', d);
                     
-                    // Basic edge styling
+                    // Edge styling with highest z-index
                     path.setAttribute('stroke', '#666');
                     path.setAttribute('stroke-width', '2');
+                    path.setAttribute('stroke-opacity', '0.8');
                     path.setAttribute('fill', 'none');
-                    path.setAttribute('opacity', '0.8');
-                    path.style.cursor = 'pointer';
-                    
-                    // Add arrow marker
                     path.setAttribute('marker-end', 'url(#arrowhead)');
+                    
+                    // Set highest z-index to be above all nodes
+                    path.style.zIndex = '1000';
+                    path.style.pointerEvents = 'stroke'; // Only interact with edge lines
+                    
+                    // Add hover effect for edges
+                    path.addEventListener('mouseenter', () => {
+                        path.setAttribute('stroke', '#4ecdc4');
+                        path.setAttribute('stroke-width', '3');
+                        path.style.filter = 'drop-shadow(0 0 5px rgba(78, 205, 196, 0.5))';
+                    });
+                    
+                    path.addEventListener('mouseleave', () => {
+                        path.setAttribute('stroke', '#666');
+                        path.setAttribute('stroke-width', '2');
+                        path.style.filter = 'none';
+                    });
+                    
+                    // Add click event to show edge details
+                    path.addEventListener('click', () => {
+                        this.showEdgeDetails(edge);
+                    });
                     
                     this.svg.appendChild(path);
                     
@@ -2723,16 +4651,24 @@
                     const headPos = nodePositions.get(timelineHeadNode.id);
                     if (!headPos) return;
                     
-                    // Create HEAD indicator for timeline HEAD node
-                    this.createHeadIndicatorElement(headPos, timelineHeadNode);
+                    // Only show HEAD indicator for COMMIT nodes (Git HEAD rule)
+                    if (timelineHeadNode.type === 'commit') {
+                        this.createHeadIndicatorElement(headPos, timelineHeadNode);
+                    } else {
+                        console.log('HEAD is not on a commit node, not showing indicator (type:', timelineHeadNode.type, ')');
+                    }
                     return;
                 }
                 
                 const headPos = nodePositions.get(headNode.id);
                 if (!headPos) return;
                 
-                // Create HEAD indicator for found HEAD node
-                this.createHeadIndicatorElement(headPos, headNode);
+                // Only show HEAD indicator for COMMIT nodes (Git HEAD rule)
+                if (headNode.type === 'commit') {
+                    this.createHeadIndicatorElement(headPos, headNode);
+                } else {
+                    console.log('HEAD is not on a commit node, not showing indicator (type:', headNode.type, ')');
+                }
             }
             
             createHeadIndicatorElement(headPos, headNode) {
@@ -2781,6 +4717,61 @@
                 // Remove all existing HEAD indicators
                 const existingIndicators = this.nodesContainer.querySelectorAll('.head-indicator');
                 existingIndicators.forEach(indicator => indicator.remove());
+            }
+            
+            blinkBranchBeforeDeletion(branchName, callback) {
+                // Find the branch line element
+                const branchLine = this.svg.querySelector(`[data-branch="${branchName}"]`);
+                const branchLabel = this.svg.querySelector(`[data-branch-label="${branchName}"]`);
+                
+                if (!branchLine) {
+                    // If no branch line found, just call callback immediately
+                    callback();
+                    return;
+                }
+                
+                let blinkCount = 0;
+                const maxBlinks = 5;
+                const blinkDuration = 1000; // 1 second per blink
+                
+                const blink = () => {
+                    if (blinkCount >= maxBlinks) {
+                        // Restore original style and call callback
+                        branchLine.style.opacity = '0.2';
+                        branchLine.style.filter = 'none';
+                        if (branchLabel) {
+                            branchLabel.style.fill = '#999';
+                            branchLabel.style.filter = 'none';
+                        }
+                        callback();
+                        return;
+                    }
+                    
+                    // Toggle visibility
+                    if (blinkCount % 2 === 0) {
+                        // Show (highlight)
+                        branchLine.style.opacity = '1';
+                        branchLine.style.filter = `drop-shadow(0 0 10px #ff0000)`;
+                        if (branchLabel) {
+                            branchLabel.style.fill = '#ff0000';
+                            branchLabel.style.filter = `drop-shadow(0 0 10px #ff0000)`;
+                        }
+                    } else {
+                        // Hide (fade)
+                        branchLine.style.opacity = '0.1';
+                        branchLine.style.filter = 'none';
+                        if (branchLabel) {
+                            branchLabel.style.fill = '#ccc';
+                            branchLabel.style.filter = 'none';
+                        }
+                    }
+                    
+                    blinkCount++;
+                    setTimeout(blink, blinkDuration);
+                };
+                
+                // Start blinking
+                blink();
             }
             
             showNodeDetails(node) {
@@ -2842,81 +4833,6 @@
                     }, 2000);
                 }
             }
-
-        function updateGitStatusDisplay() {
-            const currentBranchElement = document.getElementById('current-branch');
-            const commitCountElement = document.getElementById('commit-count');
-            
-            if (!currentBranchElement || !commitCountElement) return;
-            
-            // Check if repository exists
-            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
-                currentBranchElement.textContent = 'No repository';
-                commitCountElement.textContent = ';
-                return;
-            }
-            
-            // Get current branch and commit count
-            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
-            const commitCount = Array.from(window.gitProcessor.timeline.nodes.values())
-                .filter(node => node.type === 'commit').length;
-            
-            currentBranchElement.textContent = currentBranch;
-            commitCountElement.textContent = commitCount > 0 ? `${commitCount} commits` : '0 commits';
-        }
-        
-        function updateBranchIndex() {
-            const branchIndexContent = document.getElementById('branch-index-content');
-            if (!branchIndexContent) {
-                console.log('Branch index content element not found');
-                return;
-            }
-            
-            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
-                branchIndexContent.innerHTML = '<div style="color: #999;">No repository</div>';
-                console.log('No repository found for branch index');
-                return;
-            }
-            
-            const branches = Array.from(window.gitProcessor.timeline.branches.entries());
-            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
-            const branchColors = {
-                'main': '#4CAF50',
-                'master': '#4CAF50',
-                'develop': '#FF9800',
-                'design_codes': '#2196F3',
-                'logic_codes': '#9C27B0',
-                'database_schema': '#FF5722',
-                'ui_components': '#00BCD4',
-                'api_endpoints': '#FF9800',
-                'testing_suite': '#4CAF50',
-                'documentation': '#795548',
-                'deployment': '#F44336',
-                'bugfix': '#F44336',
-                'hotfix': '#F44336',
-                'release': '#9C27B0'
-            };
-            
-            console.log('Updating branch index with branches:', branches);
-            console.log('Current branch:', currentBranch);
-            
-            let html = '';
-            branches.forEach(([branchName, nodeId], index) => {
-                const color = branchColors[branchName] || '#666';
-                const isCurrentBranch = branchName === currentBranch;
-                
-                html += `
-                    <div class="branch-item ${isCurrentBranch ? 'current-branch' : \}">
-                        <div class="branch-index-number">${index + 1}</div>
-                        <div class="branch-color-box" style="background-color: ${color}; border-color: ${color};"></div>
-                        <div class="branch-name">${branchName}</div>
-                    </div>
-                `;
-            });
-            
-            branchIndexContent.innerHTML = html;
-            console.log('Branch index updated with HTML:', html);
-        }
             
             highlightEdge(edgeId) {
                 const edgeElement = this.edgeElements.get(edgeId);
@@ -2983,7 +4899,12 @@
         // Initialize Git graph visualizer
         const gitGraphVisualizer = new GitGraphVisualizer();
         
+        // Show empty state by default on page load
+        gitGraphVisualizer.showEmptyState();
+        
         function renderGitGraph(timelineData) {
+            console.log('renderGitGraph called with timelineData:', timelineData);
+            console.log('Nodes in timeline:', timelineData.nodes.map(n => ({id: n.id, type: n.type, branch: n.branch})));
             gitGraphVisualizer.render(timelineData);
         }
         
@@ -3285,6 +5206,81 @@
             if (gitGraphVisualizer) {
                 gitGraphVisualizer.centerView();
             }
+        }
+        
+        function updateGitStatusDisplay() {
+            const currentBranchElement = document.getElementById('current-branch');
+            const commitCountElement = document.getElementById('commit-count');
+            
+            if (!currentBranchElement || !commitCountElement) return;
+            
+            // Check if repository exists
+            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
+                currentBranchElement.textContent = 'No repository';
+                commitCountElement.textContent = '';
+                return;
+            }
+            
+            // Get current branch and commit count
+            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
+            const commitCount = Array.from(window.gitProcessor.timeline.nodes.values())
+                .filter(node => node.type === 'commit').length;
+            
+            currentBranchElement.textContent = currentBranch;
+            commitCountElement.textContent = commitCount > 0 ? `${commitCount} commits` : '0 commits';
+        }
+        
+        function updateBranchIndex() {
+            const branchIndexContent = document.getElementById('branch-index-content');
+            if (!branchIndexContent) {
+                console.log('Branch index content element not found');
+                return;
+            }
+            
+            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
+                branchIndexContent.innerHTML = '<div style="color: #999;">No repository</div>';
+                console.log('No repository found for branch index');
+                return;
+            }
+            
+            const branches = Array.from(window.gitProcessor.timeline.branches.entries());
+            const currentBranch = window.gitProcessor.timeline.getCurrentBranch() || 'main';
+            const branchColors = {
+                'main': '#4CAF50',
+                'master': '#4CAF50',
+                'develop': '#FF9800',
+                'design_codes': '#2196F3',
+                'logic_codes': '#9C27B0',
+                'database_schema': '#FF5722',
+                'ui_components': '#00BCD4',
+                'api_endpoints': '#FF9800',
+                'testing_suite': '#4CAF50',
+                'documentation': '#795548',
+                'deployment': '#F44336',
+                'bugfix': '#F44336',
+                'hotfix': '#F44336',
+                'release': '#9C27B0'
+            };
+            
+            console.log('Updating branch index with branches:', branches);
+            console.log('Current branch:', currentBranch);
+            
+            let html = '';
+            branches.forEach(([branchName, nodeId], index) => {
+                const color = branchColors[branchName] || '#666';
+                const isCurrentBranch = branchName === currentBranch;
+                
+                html += `
+                    <div class="branch-item ${isCurrentBranch ? 'current-branch' : ''}">
+                        <div class="branch-index-number">${index + 1}</div>
+                        <div class="branch-color-box" style="background-color: ${color}; border-color: ${color};"></div>
+                        <div class="branch-name">${branchName}</div>
+                    </div>
+                `;
+            });
+            
+            branchIndexContent.innerHTML = html;
+            console.log('Branch index updated with HTML:', html);
         }
     </script>
 </body>
