@@ -4139,6 +4139,7 @@ Cycle: Pull → Work → Commit → Push → Repeat
                 this.isDragging = false;
                 this.dragStartX = 0;
                 this.dragStartY = 0;
+                this.isBranchDeletion = false; // Track branch deletion state
                 
                 this.initializeInteractions();
             }
@@ -5038,6 +5039,13 @@ Cycle: Pull → Work → Commit → Push → Repeat
             }
             
             animateNodeAppearance(nodeElement, delay = 0) {
+                // Skip animation during branch deletion
+                if (this.isBranchDeletion) {
+                    nodeElement.style.transform = 'translate(-50%, -50%) scale(1)';
+                    nodeElement.style.opacity = '1';
+                    return;
+                }
+                
                 nodeElement.style.transform = 'translate(-50%, -50%) scale(0)';
                 nodeElement.style.opacity = '0';
                 
@@ -5134,6 +5142,9 @@ Cycle: Pull → Work → Commit → Push → Repeat
             }
             
             blinkBranchBeforeDeletion(branchName, callback) {
+                // Set branch deletion flag
+                this.isBranchDeletion = true;
+                
                 // Find the branch line element
                 const branchLine = this.svg.querySelector(`[data-branch="${branchName}"]`);
                 const branchLabel = this.svg.querySelector(`[data-branch-label="${branchName}"]`);
@@ -5141,6 +5152,7 @@ Cycle: Pull → Work → Commit → Push → Repeat
                 if (!branchLine) {
                     // If no branch line found, just call callback immediately
                     callback();
+                    this.isBranchDeletion = false;
                     return;
                 }
                 
@@ -5158,6 +5170,10 @@ Cycle: Pull → Work → Commit → Push → Repeat
                             branchLabel.style.filter = 'none';
                         }
                         callback();
+                        // Reset flag after deletion is complete
+                        setTimeout(() => {
+                            this.isBranchDeletion = false;
+                        }, 100);
                         return;
                     }
                     
