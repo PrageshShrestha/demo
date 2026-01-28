@@ -21,7 +21,8 @@ class GitNode {
             'clone': '#00BCD4',
             'pull': '#795548',
             'push': '#607D8B',
-            'remote': '#3F51B5'
+            'remote': '#3F51B5',
+            'revert': '#E91E63'
         };
         return colors[type] || '#757575';
     }
@@ -54,6 +55,8 @@ class GitTimeline {
         this.nodeCounter = 0;
         this.currentBranch = 'main';
         this.current_working_branch = 'main'; // Internal tracking for current working branch
+        this.detachedHEAD = null; // Track detached HEAD state
+        this.previousBranch = null; // Track previous branch for switching back
     }
     
     // Generate realistic Git commit hash
@@ -318,6 +321,25 @@ class GitTimeline {
             remotes: Object.fromEntries(this.remotes),
             config: this.config
         };
+    }
+
+    // Detached HEAD methods
+    isDetachedHEAD() {
+        return this.detachedHEAD !== null;
+    }
+
+    setDetachedHEAD(commitHash) {
+        this.detachedHEAD = commitHash;
+        this.previousBranch = this.currentBranch;
+        this.currentBranch = null;
+    }
+
+    clearDetachedHEAD() {
+        if (this.previousBranch) {
+            this.currentBranch = this.previousBranch;
+            this.previousBranch = null;
+        }
+        this.detachedHEAD = null;
     }
 }
 

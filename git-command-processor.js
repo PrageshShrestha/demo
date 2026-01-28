@@ -1,4 +1,5 @@
 const GitFileSystem = require('./git-filesystem');
+const path = require('path');
 
 class GitCommandProcessor {
     constructor() {
@@ -64,6 +65,9 @@ class GitCommandProcessor {
                     break;
                 case 'log':
                     await this.handleLog(parts);
+                    break;
+                case 'status':
+                    await this.handleStatus(parts);
                     break;
                 case 'reset':
                     await this.handleReset(parts);
@@ -549,6 +553,304 @@ class GitCommandProcessor {
         } else {
             this.addTerminalOutput('usage: git reset [--soft] HEAD~1', 'error');
         }
+    }
+
+    async handleStatus(parts) {
+        const options = this.parseStatusOptions(parts);
+        const fileStates = await this.getFileStates();
+        
+        // Display branch info
+        if (options.showBranch || options.format === 'long') {
+            this.displayBranchInfo();
+        }
+        
+        // Display file changes
+        const hasChanges = this.displayFileChanges(fileStates, options);
+        
+        // Display untracked files
+        const hasUntracked = this.displayUntrackedFiles(fileStates, options);
+        
+        if (!hasChanges && !hasUntracked) {
+            this.addTerminalOutput('nothing to commit, working tree clean', 'info');
+        }
+    }
+
+    parseStatusOptions(parts) {
+        const options = {
+            format: 'long', // long, short, porcelain
+            showBranch: false,
+            showStash: false,
+            untrackedFiles: 'normal', // all, normal, no
+            showIgnored: false,
+            verbose: 0
+        };
+
+        parts.forEach((part, index) => {
+            switch (part) {
+                case '-s':
+                case '--short':
+                    options.format = 'short';
+                    break;
+                case '--porcelain':
+                    options.format = 'porcelain';
+                    options.version = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'v1';
+                    break;
+                case '--long':
+                    options.format = 'long';
+                    break;
+                case '-b':
+                case '--branch':
+                    options.showBranch = true;
+                    break;
+                case '--show-stash':
+                    options.showStash = true;
+                    break;
+                case '-v':
+                    options.verbose++;
+                    break;
+                case '--verbose':
+                    options.verbose++;
+                    break;
+                case '--ignored':
+                    options.showIgnored = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'traditional';
+                    break;
+                case '-u':
+                    options.untrackedFiles = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'all';
+                    break;
+                case '--untracked-files':
+                    options.untrackedFiles = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'all';
+                    break;
+            }
+        });
+
+        return options;
+    }
+
+    async getFileStates() {
+        const localFiles = await this.gitFS.listFiles(this.gitFS.localDir);
+        const stagedFiles = await this.gitFS.listFiles(this.gitFS.stageDir);
+        const committedFiles = await this.gitFS.listFiles(this.gitFS.commitDir);
+        
+        const fileStates = new Map();
+
+        // Check all local files
+        for (const file of localFiles) {
+            const localPath = path.join(this.gitFS.localDir, file);
+            const stagedPath = path.join(this.gitFS.stageDir, file);
+            const committedPath = path.join(this.gitFS.commitDir, file);
+
+            const state = {
+                path: file,
+                inLocal: true,
+                inStaged: await this.gitFS.fileExists(stagedPath),
+                inCommitted: await this.gitFS.fileExists(committedPath),
+                localContent: null,
+                stagedContent: null,
+                committedContent: null
+            };
+
+            try {
+                state.localContent = await this.gitFS.readFile(localPath);
+            } catch (e) {}
+
+            try {
+                state.stagedContent = await this.gitFS.readFile(stagedPath);
+            } catch (e) {}
+
+            try {
+                state.committedContent = await this.gitFS.readFile(committedPath);
+            } catch (e) {}
+
+            fileStates.set(file, state);
+        }
+
+        // Check files that are staged but not in local (deleted)
+        for (const file of stagedFiles) {
+            if (!fileStates.has(file)) {
+                const stagedPath = path.join(this.gitFS.stageDir, file);
+                const committedPath = path.join(this.gitFS.commitDir, file);
+
+                const state = {
+                    path: file,
+                    inLocal: false,
+                    inStaged: true,
+                    inCommitted: await this.gitFS.fileExists(committedPath),
+                    localContent: null,
+                    stagedContent: null,
+                    committedContent: null
+                };
+
+                try {
+                    state.stagedContent = await this.gitFS.readFile(stagedPath);
+                } catch (e) {}
+
+                try {
+                    state.committedContent = await this.gitFS.readFile(committedPath);
+                } catch (e) {}
+
+                fileStates.set(file, state);
+            }
+        }
+
+        // Check files that are committed but not in local or staged (deleted)
+        for (const file of committedFiles) {
+            if (!fileStates.has(file)) {
+                const committedPath = path.join(this.gitFS.commitDir, file);
+
+                const state = {
+                    path: file,
+                    inLocal: false,
+                    inStaged: false,
+                    inCommitted: true,
+                    localContent: null,
+                    stagedContent: null,
+                    committedContent: null
+                };
+
+                try {
+                    state.committedContent = await this.gitFS.readFile(committedPath);
+                } catch (e) {}
+
+                fileStates.set(file, state);
+            }
+        }
+
+        return fileStates;
+    }
+
+    getFileStatus(state) {
+        let indexStatus = ' ';
+        let workTreeStatus = ' ';
+
+        // Determine index status (staged changes)
+        if (!state.inCommitted && state.inStaged) {
+            indexStatus = 'A'; // Added
+        } else if (state.inCommitted && !state.inStaged) {
+            indexStatus = 'D'; // Deleted
+        } else if (state.inCommitted && state.inStaged && state.stagedContent !== state.committedContent) {
+            indexStatus = 'M'; // Modified
+        }
+
+        // Determine working tree status
+        if (!state.inStaged && state.inLocal) {
+            workTreeStatus = 'A'; // Added (not staged)
+        } else if (state.inStaged && !state.inLocal) {
+            workTreeStatus = 'D'; // Deleted
+        } else if (state.inStaged && state.inLocal && state.localContent !== state.stagedContent) {
+            workTreeStatus = 'M'; // Modified
+        }
+
+        return { indexStatus, workTreeStatus };
+    }
+
+    displayBranchInfo() {
+        const currentBranch = this.gitFS.timeline.getCurrentBranch();
+        const isDetached = this.gitFS.timeline.isDetachedHEAD();
+        
+        if (isDetached) {
+            const headCommit = this.gitFS.timeline.head;
+            this.addTerminalOutput(`HEAD detached at ${headCommit?.substring(0, 7) || 'unknown'}`, 'info');
+        } else {
+            this.addTerminalOutput(`On branch ${currentBranch}`, 'info');
+        }
+
+        // TODO: Add ahead/behind info when remote tracking is implemented
+    }
+
+    displayFileChanges(fileStates, options) {
+        let hasChanges = false;
+        const changedFiles = [];
+
+        for (const [file, state] of fileStates) {
+            const { indexStatus, workTreeStatus } = this.getFileStatus(state);
+            
+            if (indexStatus !== ' ' || workTreeStatus !== ' ') {
+                hasChanges = true;
+                changedFiles.push({ file, state, indexStatus, workTreeStatus });
+            }
+        }
+
+        if (hasChanges) {
+            if (options.format === 'short' || options.format === 'porcelain') {
+                this.displayShortFormat(changedFiles, options);
+            } else {
+                this.displayLongFormat(changedFiles, options);
+            }
+        }
+
+        return hasChanges;
+    }
+
+    displayShortFormat(changedFiles, options) {
+        for (const { file, indexStatus, workTreeStatus } of changedFiles) {
+            const status = `${indexStatus}${workTreeStatus}`;
+            this.addTerminalOutput(`${status} ${file}`, 'info');
+        }
+    }
+
+    displayLongFormat(changedFiles, options) {
+        // Group by change type
+        const changes = {
+            staged: [],
+            notStaged: [],
+            untracked: []
+        };
+
+        for (const { file, state, indexStatus, workTreeStatus } of changedFiles) {
+            if (indexStatus !== ' ') {
+                let changeType = '';
+                if (indexStatus === 'A') changeType = 'new file:';
+                else if (indexStatus === 'M') changeType = 'modified:';
+                else if (indexStatus === 'D') changeType = 'deleted:';
+                
+                changes.staged.push(`\t${changeType}   ${file}`);
+            }
+
+            if (workTreeStatus !== ' ') {
+                let changeType = '';
+                if (workTreeStatus === 'M') changeType = 'modified:';
+                else if (workTreeStatus === 'D') changeType = 'deleted:';
+                
+                changes.notStaged.push(`\t${changeType}   ${file}`);
+            }
+        }
+
+        if (changes.staged.length > 0) {
+            this.addTerminalOutput('Changes to be committed:', 'info');
+            changes.staged.forEach(change => this.addTerminalOutput(change, 'info'));
+            this.addTerminalOutput('', 'info');
+        }
+
+        if (changes.notStaged.length > 0) {
+            this.addTerminalOutput('Changes not staged for commit:', 'info');
+            changes.notStaged.forEach(change => this.addTerminalOutput(change, 'info'));
+            this.addTerminalOutput('', 'info');
+        }
+    }
+
+    displayUntrackedFiles(fileStates, options) {
+        const untrackedFiles = [];
+        
+        for (const [file, state] of fileStates) {
+            if (!state.inStaged && !state.inCommitted && state.inLocal) {
+                untrackedFiles.push(file);
+            }
+        }
+
+        if (untrackedFiles.length > 0 && options.untrackedFiles !== 'no') {
+            if (options.format === 'short' || options.format === 'porcelain') {
+                for (const file of untrackedFiles) {
+                    this.addTerminalOutput(`?? ${file}`, 'info');
+                }
+            } else {
+                this.addTerminalOutput('Untracked files:', 'info');
+                this.addTerminalOutput('\t(use "git add <file>..." to include in what will be committed)', 'info');
+                untrackedFiles.forEach(file => this.addTerminalOutput(`\t${file}`, 'info'));
+                this.addTerminalOutput('', 'info');
+            }
+        }
+
+        return untrackedFiles.length > 0;
     }
 
     async handleDetach(parts) {

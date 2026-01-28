@@ -2236,6 +2236,10 @@
                         <span class="toc-desc">Quick Git concepts</span>
                     </li>
                     <li class="toc-item">
+                        <a href="#staging-areas" class="toc-link">📁 Storage Areas</a>
+                        <span class="toc-desc">File states & staging</span>
+                    </li>
+                    <li class="toc-item">
                         <a href="#git-init" class="toc-link">git init</a>
                         <span class="toc-desc">Initialize repository</span>
                     </li>
@@ -2286,6 +2290,10 @@
                     <li class="toc-item">
                         <a href="#git-clone" class="toc-link">git clone</a>
                         <span class="toc-desc">Copy repository</span>
+                    </li>
+                    <li class="toc-item">
+                        <a href="#git-revert" class="toc-link">git revert</a>
+                        <span class="toc-desc">Revert commits</span>
                     </li>
                     <li class="toc-item">
                         <a href="#git-detach" class="toc-link">git detach</a>
@@ -2547,6 +2555,180 @@ Cycle: Pull → Work → Commit → Push → Repeat
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Staging Areas and File States -->
+            <div class="command-doc" id="staging-areas">
+                <h3 class="command-title">📁 Git Storage Areas & File States</h3>
+                <p>Understanding where your files live and their states in Git's workflow.</p>
+                
+                <div class="command-syntax">
+                    <strong>🏗️ The Four Storage Areas:</strong><br><br>
+                    
+                    <pre style="background: #1a1a2e; padding: 15px; border-radius: 5px; color: #4ecdc4;">
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   📁 LOCAL      │    │   📤 STAGING    │    │   💾 LOCAL      │    │   🌐 REMOTE     │
+│   DIRECTORY     │───▶│     AREA        │───▶│  REPOSITORY     │───▶│  REPOSITORY     │
+│                 │    │                 │    │                 │    │                 │
+│ • Working files │    │ • Ready to      │    │ • Committed     │    │ • Pushed        │
+│ • Edits in place│    │   commit        │    │   snapshots     │    │   snapshots     │
+│ • Untracked     │    │ • Indexed changes│    │ • Branch history│    │ • Team access   │
+│ • Modified      │    │ • git add       │    │ • git commit    │    │ • git push      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │                       │
+         ▼                       ▼                       ▼                       ▼
+    Edit files           Stage changes          Save forever           Share with team
+    </pre>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <strong>📊 File Status Matrix - What git status Shows:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #96ceb4;">
+STATUS CODES (XY Format):
+X = Staged (Index) Status    Y = Working Directory Status
+
+┌─────┬─────┬─────────────────────────────────┐
+│ X   │ Y   │ MEANING                         │
+├─────┼─────┼─────────────────────────────────┤
+│ ' ' │ ' ' │ Unmodified (clean)              │
+│ 'M' │ ' ' │ Modified in staging area        │
+│ 'A' │ ' ' │ Added to staging area           │
+│ 'D' │ ' ' │ Deleted from staging area       │
+│ ' ' │ 'M' │ Modified in working directory   │
+│ ' ' │ 'A' │ Added but not staged            │
+│ ' ' │ 'D' │ Deleted but not staged          │
+│ 'M' │ 'M' │ Modified in both places         │
+│ 'A' │ 'M' │ Added, then modified            │
+│ '??'│ '??'│ Untracked file                  │
+│ '!!'│ '!!'│ Ignored file                    │
+└─────┴─────┴─────────────────────────────────┘
+
+EXAMPLE OUTPUT:
+$ git status
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   app.js
+        modified:   style.css
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes)
+        modified:   README.md
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        config.json
+                        </pre>
+                    </div>
+                    
+                    <div class="example">
+                        <strong>🔄 File Lifecycle - From Creation to Repository:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #9c27b0;">
+FILE JOURNEY:
+
+1. UNTRACKED (New file)
+   📁 new.js ──→ git add new.js ──→ 📤 new.js (staged)
+
+2. STAGED (Ready to commit)
+   📤 new.js ──→ git commit -m "Add new.js" ──→ 💾 new.js (committed)
+
+3. COMMITTED (In repository)
+   💾 new.js ──→ [edit file] ──→ 📁 new.js (modified)
+
+4. MODIFIED (Changed after commit)
+   📁 new.js ──→ git add new.js ──→ 📤 new.js (staged again)
+
+5. DELETED (Removed from working directory)
+   📁 new.js ──→ rm new.js ──→ git add new.js ──→ 📤 new.js (deleted)
+
+VISUAL STATUS TRANSITIONS:
+
+UNTRACKED ──(git add)──▶ STAGED ──(git commit)──▶ COMMITTED
+    ▲                                │
+    │                                ▼
+    └──(git restore)─────────── MODIFIED ──(git add)──▶ STAGED
+                        </pre>
+                    </div>
+                    
+                    <div class="example">
+                        <strong>🎯 Common Workflows - Real Scenarios:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #ff9800;">
+SCENARIO 1: New Feature Development
+$ echo "function newFeature() {}" > feature.js
+$ git status
+?? feature.js                    # Untracked
+
+$ git add feature.js
+$ git status
+A  feature.js                    # Staged, ready to commit
+
+$ git commit -m "Add new feature"
+$ git status
+[nothing to commit]             # Clean working directory
+
+
+SCENARIO 2: Quick Fix
+$ vim bug.js                     # Edit existing file
+$ git status
+ M bug.js                       # Modified, not staged
+
+$ git add bug.js
+$ git status
+M  bug.js                       # Modified, staged
+
+$ git commit -m "Fix critical bug"
+$ git status
+[nothing to commit]             # Clean
+
+
+SCENARIO 3: Multiple Changes
+$ vim app.js utils.js           # Edit multiple files
+$ git add app.js                # Stage only one
+$ git status
+ M  app.js                      # Staged modification
+ M  utils.js                    # Unstaged modification
+
+$ git commit -m "Update app.js" # Commit only staged changes
+$ git status
+ M  utils.js                    # Still modified, not committed
+                        </pre>
+                    </div>
+                    
+                    <div class="example">
+                        <strong>⚡ Pro Tips for File Management:</strong><br><br>
+                        
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #4caf50;">
+QUICK INSPECTION COMMANDS:
+
+• git status          → See all file states at once
+• git status -s       → Short format (XY codes)
+• git status --porcelain → Script-friendly output
+• git diff            → Show unstaged changes
+• git diff --staged   → Show staged changes
+• git diff HEAD       → Show all changes
+
+SELECTIVE STAGING:
+
+• git add file.js     → Stage specific file
+• git add -p file.js  → Stage parts of file (interactive)
+• git add .           → Stage all changes
+• git add *.js        → Stage by pattern
+• git restore --staged file.js → Unstage file
+
+SAFETY NETS:
+
+• git stash           → Save work temporarily
+• git checkout -- file.js → Discard local changes
+• git reset HEAD file.js → Unstage but keep changes
+• git clean -fd       → Remove untracked files/dirs
+                        </pre>
                     </div>
                 </div>
             </div>
@@ -2851,6 +3033,49 @@ Cycle: Pull → Work → Commit → Push → Repeat
                         <code>git clone https://github.com/user/repo.git my-project</code>
                         <p>Clone into specific directory</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Git Revert -->
+            <div class="command-doc" id="git-revert">
+                <h3 class="command-title">git revert</h3>
+                <p>Create a new commit that undoes changes from a previous commit.</p>
+                
+                <div class="command-syntax">
+                    <code>git revert &lt;commit&gt;</code><br>
+                    <code>git revert HEAD~1</code><br>
+                    <code>git revert -m "Custom message" &lt;commit&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <div class="example">
+                        <code>git revert HEAD~1</code>
+                        <p>Revert the most recent commit</p>
+                    </div>
+                    <div class="example">
+                        <code>git revert abc123</code>
+                        <p>Revert specific commit (partial hash)</p>
+                    </div>
+                    <div class="example">
+                        <code>git revert -m "Fix bug reversion" HEAD~2</code>
+                        <p>Revert with custom message</p>
+                    </div>
+                </div>
+                
+                <div class="command-notes">
+                    <p><strong>🔍 Key Points:</strong></p>
+                    <ul>
+                        <li>Creates a NEW commit that undoes changes</li>
+                        <li>Does NOT delete history (safe for shared branches)</li>
+                        <li>Use when you want to undo but preserve history</li>
+                        <li>Different from git reset (which rewrites history)</li>
+                    </ul>
+                    
+                    <p><strong>⚠️ Error Messages:</strong></p>
+                    <ul>
+                        <li><code>fatal: No commits to revert</code> - No commits exist yet</li>
+                        <li><code>fatal: bad revision 'X'</code> - Commit doesn't exist</li>
+                    </ul>
                 </div>
             </div>
 

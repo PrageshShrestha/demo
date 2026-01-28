@@ -175,6 +175,11 @@ class GitCommandProcessor {
                     commandSuccess = await this.handleStatus(parts);
                     commandData = { type: 'status', message: 'Checked status' };
                     break;
+                case 'revert':
+                    console.log('Handling revert');
+                    commandSuccess = await this.handleRevert(parts);
+                    commandData = { type: 'revert', message: 'Reverted commit' };
+                    break;
                 default:
                     console.log('Unknown command:', mainCommand);
                     this.addTerminalOutput(`git: '${mainCommand}' is not a git command. See 'git --help'.`, 'error');
@@ -786,6 +791,348 @@ class GitCommandProcessor {
         } else {
             this.addTerminalOutput('usage: git reset [--soft] HEAD~1', 'error');
         }
+    }
+
+    async handleStatus(parts) {
+        const options = this.parseStatusOptions(parts);
+        const fileStates = this.getFileStates();
+        
+        // Display branch info
+        if (options.showBranch || options.format === 'long') {
+            this.displayBranchInfo();
+        }
+        
+        // Display file changes
+        const hasChanges = this.displayFileChanges(fileStates, options);
+        
+        // Display untracked files
+        const hasUntracked = this.displayUntrackedFiles(fileStates, options);
+        
+        if (!hasChanges && !hasUntracked) {
+            this.addTerminalOutput('nothing to commit, working tree clean', 'info');
+        }
+        
+        return true; // Status is always successful
+    }
+
+    parseStatusOptions(parts) {
+        const options = {
+            format: 'long', // long, short, porcelain
+            showBranch: false,
+            showStash: false,
+            untrackedFiles: 'normal', // all, normal, no
+            showIgnored: false,
+            verbose: 0
+        };
+
+        parts.forEach((part, index) => {
+            switch (part) {
+                case '-s':
+                case '--short':
+                    options.format = 'short';
+                    break;
+                case '--porcelain':
+                    options.format = 'porcelain';
+                    options.version = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'v1';
+                    break;
+                case '--long':
+                    options.format = 'long';
+                    break;
+                case '-b':
+                case '--branch':
+                    options.showBranch = true;
+                    break;
+                case '--show-stash':
+                    options.showStash = true;
+                    break;
+                case '-v':
+                    options.verbose++;
+                    break;
+                case '--verbose':
+                    options.verbose++;
+                    break;
+                case '--ignored':
+                    options.showIgnored = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'traditional';
+                    break;
+                case '-u':
+                    options.untrackedFiles = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'all';
+                    break;
+                case '--untracked-files':
+                    options.untrackedFiles = parts[index + 1]?.startsWith('=') ? parts[index + 1].substring(1) : 'all';
+                    break;
+            }
+        });
+
+        return options;
+    }
+
+    getFileStates() {
+        const localFiles = this.sessionData.localFiles;
+        const stagedFiles = this.sessionData.stagedFiles;
+        const committedFiles = this.sessionData.committedFiles;
+        
+        const fileStates = new Map();
+
+        // Check all local files
+        for (const file of localFiles) {
+            const state = {
+                path: file,
+                inLocal: true,
+                inStaged: stagedFiles.includes(file),
+                inCommitted: committedFiles.includes(file),
+                localContent: `content-${file}`, // Simulated content
+                stagedContent: `content-${file}`,
+                committedContent: `content-${file}`
+            };
+
+            fileStates.set(file, state);
+        }
+
+        // Check files that are staged but not in local (deleted)
+        for (const file of stagedFiles) {
+            if (!fileStates.has(file)) {
+                const state = {
+                    path: file,
+                    inLocal: false,
+                    inStaged: true,
+                    inCommitted: committedFiles.includes(file),
+                    localContent: null,
+                    stagedContent: `content-${file}`,
+                    committedContent: `content-${file}`
+                };
+
+                fileStates.set(file, state);
+            }
+        }
+
+        // Check files that are committed but not in local or staged (deleted)
+        for (const file of committedFiles) {
+            if (!fileStates.has(file)) {
+                const state = {
+                    path: file,
+                    inLocal: false,
+                    inStaged: false,
+                    inCommitted: true,
+                    localContent: null,
+                    stagedContent: null,
+                    committedContent: `content-${file}`
+                };
+
+                fileStates.set(file, state);
+            }
+        }
+
+        return fileStates;
+    }
+
+    getFileStatus(state) {
+        let indexStatus = ' ';
+        let workTreeStatus = ' ';
+
+        // Determine index status (staged changes)
+        if (!state.inCommitted && state.inStaged) {
+            indexStatus = 'A'; // Added
+        } else if (state.inCommitted && !state.inStaged) {
+            indexStatus = 'D'; // Deleted
+        } else if (state.inCommitted && state.inStaged && state.stagedContent !== state.committedContent) {
+            indexStatus = 'M'; // Modified
+        }
+
+        // Determine working tree status
+        if (!state.inStaged && state.inLocal) {
+            workTreeStatus = 'A'; // Added (not staged)
+        } else if (state.inStaged && !state.inLocal) {
+            workTreeStatus = 'D'; // Deleted
+        } else if (state.inStaged && state.inLocal && state.localContent !== state.stagedContent) {
+            workTreeStatus = 'M'; // Modified
+        }
+
+        return { indexStatus, workTreeStatus };
+    }
+
+    displayBranchInfo() {
+        const currentBranch = this.timeline.getCurrentBranch();
+        const isDetached = this.timeline.isDetachedHEAD();
+        
+        if (isDetached) {
+            const headCommit = this.timeline.head;
+            this.addTerminalOutput(`HEAD detached at ${headCommit?.substring(0, 7) || 'unknown'}`, 'info');
+        } else {
+            this.addTerminalOutput(`On branch ${currentBranch}`, 'info');
+        }
+
+        // TODO: Add ahead/behind info when remote tracking is implemented
+    }
+
+    displayFileChanges(fileStates, options) {
+        let hasChanges = false;
+        const changedFiles = [];
+
+        for (const [file, state] of fileStates) {
+            const { indexStatus, workTreeStatus } = this.getFileStatus(state);
+            
+            if (indexStatus !== ' ' || workTreeStatus !== ' ') {
+                hasChanges = true;
+                changedFiles.push({ file, state, indexStatus, workTreeStatus });
+            }
+        }
+
+        if (hasChanges) {
+            if (options.format === 'short' || options.format === 'porcelain') {
+                this.displayShortFormat(changedFiles, options);
+            } else {
+                this.displayLongFormat(changedFiles, options);
+            }
+        }
+
+        return hasChanges;
+    }
+
+    displayShortFormat(changedFiles, options) {
+        for (const { file, indexStatus, workTreeStatus } of changedFiles) {
+            const status = `${indexStatus}${workTreeStatus}`;
+            this.addTerminalOutput(`${status} ${file}`, 'info');
+        }
+    }
+
+    displayLongFormat(changedFiles, options) {
+        // Group by change type
+        const changes = {
+            staged: [],
+            notStaged: [],
+            untracked: []
+        };
+
+        for (const { file, state, indexStatus, workTreeStatus } of changedFiles) {
+            if (indexStatus !== ' ') {
+                let changeType = '';
+                if (indexStatus === 'A') changeType = 'new file:';
+                else if (indexStatus === 'M') changeType = 'modified:';
+                else if (indexStatus === 'D') changeType = 'deleted:';
+                
+                changes.staged.push(`\t${changeType}   ${file}`);
+            }
+
+            if (workTreeStatus !== ' ') {
+                let changeType = '';
+                if (workTreeStatus === 'M') changeType = 'modified:';
+                else if (workTreeStatus === 'D') changeType = 'deleted:';
+                
+                changes.notStaged.push(`\t${changeType}   ${file}`);
+            }
+        }
+
+        if (changes.staged.length > 0) {
+            this.addTerminalOutput('Changes to be committed:', 'info');
+            changes.staged.forEach(change => this.addTerminalOutput(change, 'info'));
+            this.addTerminalOutput('', 'info');
+        }
+
+        if (changes.notStaged.length > 0) {
+            this.addTerminalOutput('Changes not staged for commit:', 'info');
+            changes.notStaged.forEach(change => this.addTerminalOutput(change, 'info'));
+            this.addTerminalOutput('', 'info');
+        }
+    }
+
+    displayUntrackedFiles(fileStates, options) {
+        const untrackedFiles = [];
+        
+        for (const [file, state] of fileStates) {
+            if (!state.inStaged && !state.inCommitted && state.inLocal) {
+                untrackedFiles.push(file);
+            }
+        }
+
+        if (untrackedFiles.length > 0 && options.untrackedFiles !== 'no') {
+            if (options.format === 'short' || options.format === 'porcelain') {
+                for (const file of untrackedFiles) {
+                    this.addTerminalOutput(`?? ${file}`, 'info');
+                }
+            } else {
+                this.addTerminalOutput('Untracked files:', 'info');
+                this.addTerminalOutput('\t(use "git add <file>..." to include in what will be committed)', 'info');
+                untrackedFiles.forEach(file => this.addTerminalOutput(`\t${file}`, 'info'));
+                this.addTerminalOutput('', 'info');
+            }
+        }
+
+        return untrackedFiles.length > 0;
+    }
+
+    async handleRevert(parts) {
+        // Check if there are any commits to revert
+        const commits = this.timeline.getCommits();
+        
+        if (commits.length === 0) {
+            this.addTerminalOutput('fatal: No commits to revert', 'error');
+            return false;
+        }
+
+        // Parse revert target (e.g., HEAD~1, commit hash)
+        let targetCommit = null;
+        if (parts.length > 2) {
+            targetCommit = parts[2];
+        } else {
+            this.addTerminalOutput('usage: git revert <commit>', 'error');
+            return false;
+        }
+
+        // Handle common revert targets
+        let commitToRevert = null;
+        
+        if (targetCommit === 'HEAD~1' && commits.length > 0) {
+            commitToRevert = commits[0]; // Most recent commit
+        } else if (targetCommit.startsWith('HEAD~')) {
+            const n = parseInt(targetCommit.substring(5));
+            if (n < commits.length) {
+                commitToRevert = commits[n];
+            }
+        } else {
+            // Find commit by hash (partial or full)
+            commitToRevert = commits.find(commit => 
+                commit.id.startsWith(targetCommit) || 
+                (commit.data.hash && commit.data.hash.startsWith(targetCommit))
+            );
+        }
+
+        if (!commitToRevert) {
+            this.addTerminalOutput(`fatal: bad revision '${targetCommit}'`, 'error');
+            return false;
+        }
+
+        // Parse revert message
+        let message = `Revert "${commitToRevert.data.message}"`;
+        const messageIndex = parts.findIndex(part => part === '-m');
+        
+        if (messageIndex !== -1 && parts[messageIndex + 1]) {
+            message = parts[messageIndex + 1].replace(/['"]/g, '');
+        }
+
+        // Create revert commit
+        const revertHash = this.timeline.generateCommitHash();
+        
+        // Create revert node in timeline
+        const revertNode = this.timeline.addNode('revert', {
+            message: message,
+            revertedCommit: commitToRevert.id,
+            revertedCommitHash: commitToRevert.data.hash || commitToRevert.id,
+            branch: this.timeline.getCurrentBranch() || 'main',
+            author: this.timeline.getConfig('user.name') || 'Unknown',
+            hash: revertHash,
+            shortHash: this.timeline.getShortHash(revertHash)
+        });
+
+        if (this.timeline.head) {
+            this.timeline.addEdge(this.timeline.head, revertNode.id, `git revert ${targetCommit}`);
+        }
+        
+        this.timeline.setHead(revertNode.id);
+
+        this.addTerminalOutput(`[${this.timeline.getCurrentBranch() || 'main'} ${this.timeline.getShortHash(revertHash)}] ${message}`, 'success');
+        this.addTerminalOutput(`This reverts commit ${commitToRevert.data.hash || commitToRevert.id.substring(0, 7)}`, 'info');
+        
+        return true;
     }
 
     addTerminalOutput(message, type = 'info') {
