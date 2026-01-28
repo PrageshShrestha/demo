@@ -8,6 +8,7 @@ class GitCommandProcessor {
         this.timeline = new GitTimeline();
         this.terminalOutput = [];
         this.storageKey = 'git-timeline-data';
+        this.isRepositoryInitialized = false; // Track initialization state
         
         // Session-specific data
         this.sessionData = {
@@ -270,12 +271,21 @@ class GitCommandProcessor {
             return;
         }
 
-        if (this.hasGitRepository()) {
+        if (this.isRepositoryInitialized) {
             this.addTerminalOutput('Reinitialized existing Git repository', 'info');
+            // Set timeline log data for reinitialization
+            this.lastLogData = {
+                type: 'info',
+                description: 'Repository reinitialized',
+                details: 'Git repository already existed - reinitialized in same directory'
+            };
             return;
         }
 
         this.createGitRepository();
+        
+        // Mark as initialized
+        this.isRepositoryInitialized = true;
 
         // Create init node in timeline
         const initNode = this.timeline.addNode('init', {

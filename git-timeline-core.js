@@ -1201,6 +1201,23 @@ class GitTimelineCore {
         this.commitCounter = 0;
         this.commandHistory = [];
     }
+
+    // Detached HEAD methods
+    setDetachedHEAD(commitHash) {
+        this.currentState.detachedHEAD = commitHash;
+    }
+
+    getDetachedHEAD() {
+        return this.currentState.detachedHEAD;
+    }
+
+    isDetachedHEAD() {
+        return this.currentState.detachedHEAD !== null;
+    }
+
+    clearDetachedHEAD() {
+        this.currentState.detachedHEAD = null;
+    }
 }
 
 // Export

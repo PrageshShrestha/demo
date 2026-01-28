@@ -2,8 +2,11 @@ const GitFileSystem = require('./git-filesystem');
 
 class GitCommandProcessor {
     constructor() {
-        this.gitFS = new GitFileSystem();
         this.terminalOutput = [];
+        this.gitFS = new GitFileSystem();
+        this.timeline = this.gitFS.timeline;
+        this.lastLogData = null;
+        this.isRepositoryInitialized = false; // Track initialization state
     }
 
     async processCommand(command) {
@@ -65,6 +68,9 @@ class GitCommandProcessor {
                 case 'reset':
                     await this.handleReset(parts);
                     break;
+                case 'detach':
+                    await this.handleDetach(parts);
+                    break;
                 default:
                     this.addTerminalOutput(`git: '${mainCommand}' is not a git command. See 'git --help'.`, 'error');
             }
@@ -81,15 +87,22 @@ class GitCommandProcessor {
             return;
         }
 
-        const gitDir = await this.gitFS.getGitDirectory();
-        
-        if (gitDir) {
+        if (this.isRepositoryInitialized) {
             this.addTerminalOutput('Reinitialized existing Git repository', 'info');
+            // Set timeline log data for reinitialization
+            this.lastLogData = {
+                type: 'info',
+                description: 'Repository reinitialized',
+                details: 'Git repository already existed - reinitialized in same directory'
+            };
             return;
         }
 
         await this.gitFS.createGitDirectory();
         await this.gitFS.ensureDirectories();
+        
+        // Mark as initialized
+        this.isRepositoryInitialized = true;
 
         // Create init node in timeline
         const initNode = this.gitFS.timeline.addNode('init', {
@@ -269,6 +282,12 @@ class GitCommandProcessor {
         }
 
         const target = parts[2];
+
+        // Clear detached HEAD state when switching to a branch
+        if (this.gitFS.timeline.isDetachedHEAD()) {
+            this.gitFS.timeline.clearDetachedHEAD();
+            this.addTerminalOutput('Exiting detached HEAD state', 'info');
+        }
 
         if (target === '-c' && parts[3]) {
             // Create and switch to new branch
@@ -530,6 +549,34 @@ class GitCommandProcessor {
         } else {
             this.addTerminalOutput('usage: git reset [--soft] HEAD~1', 'error');
         }
+    }
+
+    async handleDetach(parts) {
+        if (parts.length > 2) {
+            this.addTerminalOutput('usage: git detach', 'error');
+            return;
+        }
+
+        // Check if we have any commits
+        const currentBranch = this.gitFS.timeline.getCurrentBranch();
+        const commits = Array.from(this.gitFS.timeline.nodes.values())
+            .filter(node => node.type === 'commit');
+        
+        if (commits.length === 0) {
+            this.addTerminalOutput('error: no commits to detach to', 'error');
+            return;
+        }
+
+        // Get the current commit
+        const currentCommit = commits[commits.length - 1];
+        
+        // Set detached HEAD state using timeline method
+        this.gitFS.timeline.setDetachedHEAD(currentCommit.id);
+        
+        this.addTerminalOutput(`HEAD is now at ${currentCommit.id.substring(0, 7)} ${currentCommit.message}`, 'success');
+        this.addTerminalOutput('⚠️  You are in detached HEAD state', 'warning');
+        this.addTerminalOutput('  Commits made in this state will be lost unless you create a branch', 'info');
+        this.addTerminalOutput('  Use "git switch -c <branch-name>" to create a new branch', 'info');
     }
 
     addTerminalOutput(message, type = 'info') {

@@ -1556,6 +1556,31 @@
             text-align: center;
         }
         
+        /* Dynamic Tips Styles */
+        .tip-command {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4caf50;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tip-command:hover {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        
+        .tip-command:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(76, 175, 80, 0.3);
+        }
+        
         .command-input-container {
             display: flex;
             gap: 10px;
@@ -2160,7 +2185,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="help-toggle" onclick="toggleHelpPanel()">⚡ Quick Tips</button>
+                        <button class="help-toggle" onclick="executeCommand('git init')">git init</button>
                     </div>
                     
                     <!-- Command Suggestions -->
@@ -2477,36 +2502,51 @@ Cycle: Pull → Work → Commit → Push → Repeat
                     <div class="example">
                         <strong>⚡ Pro Tips - Git Best Practices:</strong><br><br>
                         
-                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #4caf50;">
-🎯 COMMIT STRATEGY:
-
-✅ Good: Small, logical commits
-   - Add user authentication
-   - Fix login validation
-   - Update password requirements
-
-❌ Bad: Large, mixed commits
-   - Add auth + fix bugs + update docs + refactor
-
-
-🌿 BRANCH NAMING:
-
-✅ Good: feature/user-auth
-   ✅ Good: bugfix/login-validation
-   ✅ Good: hotfix/security-patch
-
-❌ Bad: stuff
-   ❌ Bad: fix
-   ❌ Bad: temp
-
-
-🔄 TEAM SAFETY:
-
-1. Pull before push
-2. Never force push main
-3. Review before merge
-4. Communicate big changes
-                        </pre>
+                        <div id="dynamic-tips" style="background: #1a1a2e; padding: 10px; border-radius: 5px; color: #4caf50;">
+                            <div id="tip-content">
+                                <div style="margin-bottom: 15px;">
+                                    <strong>🎯 Interactive Commands:</strong> Click any command to copy it to input!
+                                </div>
+                                
+                                <div style="margin-bottom: 10px;">
+                                    <strong>📝 Common Commands:</strong>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;">
+                                    <button class="tip-command" onclick="executeTipCommand('git status')">git status</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git log --oneline')">git log --oneline</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git add .')">git add .</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git diff')">git diff</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git branch')">git branch</button>
+                                </div>
+                                
+                                <div style="margin-bottom: 10px;">
+                                    <strong>🌿 Branch Operations:</strong>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;">
+                                    <button class="tip-command" onclick="executeTipCommand('git branch feature')">git branch feature</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git switch feature')">git switch feature</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git switch main')">git switch main</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git merge feature')">git merge feature</button>
+                                </div>
+                                
+                                <div style="margin-bottom: 10px;">
+                                    <strong>🚨 Safety Commands:</strong>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;">
+                                    <button class="tip-command" onclick="executeTipCommand('git reflog')">git reflog</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git stash')">git stash</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git stash pop')">git stash pop</button>
+                                    <button class="tip-command" onclick="executeTipCommand('git reset --soft HEAD~1')">git reset --soft HEAD~1</button>
+                                </div>
+                                
+                                <div style="margin-bottom: 10px;">
+                                    <strong>💡 Current Tip:</strong>
+                                </div>
+                                <div id="rotating-tip" style="padding: 8px; background: rgba(76, 175, 80, 0.1); border-left: 3px solid #4caf50; border-radius: 3px;">
+                                    <!-- Tips will rotate here -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3196,6 +3236,9 @@ Cycle: Pull → Work → Commit → Push → Repeat
             
             // Initialize TOC functionality
             initializeTOC();
+            
+            // Initialize rotating tips
+            initializeRotatingTips();
         });
         
         // Table of Contents functionality
@@ -3259,6 +3302,76 @@ Cycle: Pull → Work → Commit → Push → Repeat
                 activeItem.style.background = 'rgba(78, 205, 196, 0.15)';
                 activeItem.style.borderLeftColor = '#4ecdc4';
                 activeItem.style.transform = 'translateX(5px)';
+            }
+        }
+        
+        // Rotating Tips Functionality
+        function initializeRotatingTips() {
+            const tips = [
+                "💡 Commit early, commit often - small commits are easier to review and revert",
+                "🌿 Use descriptive branch names: feature/user-auth, bugfix/login-issue",
+                "🚨 Never force push to shared branches - it rewrites history for others",
+                "📝 Write meaningful commit messages in present tense: 'Add feature' not 'Added feature'",
+                "🔄 Pull before pushing to avoid merge conflicts",
+                "🕰️ Use reflog to recover from almost any mistake",
+                "📋 Use git add -p to stage specific parts of files",
+                "🔀 Use rebase for local branches, merge for shared branches",
+                "💾 Use stash to temporarily save uncommitted changes",
+                "🎯 One logical change per commit - keep commits focused",
+                "🚀 Use tags to mark important releases: v1.0, v2.0",
+                "📊 Use git log --graph to visualize branch history",
+                "🔐 Use .gitignore to exclude sensitive files",
+                "🏗️ Understand the three trees: Working → Staging → Repository",
+                "⚡ Use git bisect to find when a bug was introduced"
+            ];
+            
+            let currentTipIndex = 0;
+            const rotatingTipElement = document.getElementById('rotating-tip');
+            
+            if (!rotatingTipElement) return;
+            
+            function showNextTip() {
+                rotatingTipElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    rotatingTipElement.textContent = tips[currentTipIndex];
+                    rotatingTipElement.style.opacity = '1';
+                    currentTipIndex = (currentTipIndex + 1) % tips.length;
+                }, 300);
+            }
+            
+            // Show first tip immediately
+            showNextTip();
+            
+            // Rotate tips every 5 seconds
+            setInterval(showNextTip, 5000);
+            
+            // Add transition style
+            rotatingTipElement.style.transition = 'opacity 0.3s ease';
+        }
+        
+        // Execute Tip Command Function
+        function executeTipCommand(command) {
+            // Add visual feedback
+            event.target.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                event.target.style.transform = '';
+            }, 100);
+            
+            // Copy command to input field instead of executing
+            const commandInput = document.getElementById('command-input');
+            if (commandInput) {
+                commandInput.value = command;
+                commandInput.focus();
+                
+                // Add visual feedback to input
+                commandInput.style.borderColor = '#4caf50';
+                commandInput.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.3)';
+                
+                setTimeout(() => {
+                    commandInput.style.borderColor = '';
+                    commandInput.style.boxShadow = '';
+                }, 500);
             }
         }
         
@@ -3569,13 +3682,100 @@ Cycle: Pull → Work → Commit → Push → Repeat
             const timelineLog = document.getElementById('timeline-log');
             if (!timelineLog) return;
             
-            // Check if there's stored error data from the processor
-            if (window.gitProcessor && window.gitProcessor.lastLogData && window.gitProcessor.lastLogData.type === 'error') {
+            // Add pre-init error logs for common commands
+            if (!window.gitProcessor || !window.gitProcessor.hasGitRepository()) {
+                const preInitCommands = ['add', 'commit', 'branch', 'merge', 'push', 'pull', 'status', 'log'];
+                const commandParts = command.trim().split(' ');
+                const mainCommand = commandParts[1];
+                
+                if (preInitCommands.includes(mainCommand)) {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = `log-entry error`;
+                    
+                    const time = new Date().toLocaleTimeString();
+                    
+                    const errorMessages = {
+                        'add': 'Cannot stage files - no Git repository initialized',
+                        'commit': 'Cannot commit - no Git repository initialized', 
+                        'branch': 'Cannot create branches - no Git repository initialized',
+                        'merge': 'Cannot merge - no Git repository initialized',
+                        'push': 'Cannot push - no Git repository initialized',
+                        'pull': 'Cannot pull - no Git repository initialized',
+                        'status': 'Cannot check status - no Git repository initialized',
+                        'log': 'Cannot show log - no Git repository initialized'
+                    };
+                    
+                    logEntry.innerHTML = `
+                        <div class="log-time">${time}</div>
+                        <div class="log-command">${command}</div>
+                        <div class="log-description">❌ ${errorMessages[mainCommand] || 'Command failed - no Git repository'}</div>
+                        <div class="log-description" style="font-size: 0.8em; color: #999; margin-top: 4px;">💡 Try running 'git init' first to initialize a repository</div>
+                    `;
+                    
+                    // Remove the "no logs" message if it exists
+                    const noLogs = timelineLog.querySelector('.no-logs');
+                    if (noLogs) {
+                        noLogs.remove();
+                    }
+                    
+                    // Add the error entry at the top
+                    timelineLog.insertBefore(logEntry, timelineLog.firstChild);
+                    
+                    // Limit to 20 most recent entries
+                    const entries = timelineLog.querySelectorAll('.log-entry');
+                    if (entries.length > 20) {
+                        entries[entries.length - 1].remove();
+                    }
+                    
+                    return;
+                }
+            }
+            
+            // Check for terminal errors (new approach)
+            if (window.gitProcessor && window.gitProcessor.getTerminalOutput) {
+                const terminalOutput = window.gitProcessor.getTerminalOutput();
+                const lastEntry = terminalOutput[terminalOutput.length - 1];
+                
+                // Check if the last terminal entry is an error
+                if (lastEntry && lastEntry.type === 'error') {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = `log-entry error`;
+                    
+                    const time = new Date().toLocaleTimeString();
+                    
+                    logEntry.innerHTML = `
+                        <div class="log-time">${time}</div>
+                        <div class="log-command">${command}</div>
+                        <div class="log-description">❌ ${lastEntry.message}</div>
+                        <div class="log-description" style="font-size: 0.8em; color: #999; margin-top: 4px;">Command failed - see terminal for details</div>
+                    `;
+                    
+                    // Remove the "no logs" message if it exists
+                    const noLogs = timelineLog.querySelector('.no-logs');
+                    if (noLogs) {
+                        noLogs.remove();
+                    }
+                    
+                    // Add the error entry at the top
+                    timelineLog.insertBefore(logEntry, timelineLog.firstChild);
+                    
+                    // Limit to 20 most recent entries
+                    const entries = timelineLog.querySelectorAll('.log-entry');
+                    if (entries.length > 20) {
+                        entries[entries.length - 1].remove();
+                    }
+                    
+                    return;
+                }
+            }
+            
+            // Check if there's stored log data from the processor
+            if (window.gitProcessor && window.gitProcessor.lastLogData) {
                 const logData = window.gitProcessor.lastLogData;
                 
-                // Create error log entry
+                // Create log entry based on type
                 const logEntry = document.createElement('div');
-                logEntry.className = `log-entry error`;
+                logEntry.className = `log-entry ${logData.type}`;
                 
                 const time = new Date().toLocaleTimeString();
                 
@@ -3592,10 +3792,10 @@ Cycle: Pull → Work → Commit → Push → Repeat
                     noLogs.remove();
                 }
                 
-                // Add the error entry at the top
+                // Add the entry at the top
                 timelineLog.insertBefore(logEntry, timelineLog.firstChild);
                 
-                // Clear the stored error data
+                // Clear the stored log data
                 window.gitProcessor.lastLogData = null;
                 
                 // Limit to 20 most recent entries
