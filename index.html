@@ -1126,50 +1126,414 @@
         
         /* Responsive Design */
         @media (max-width: 768px) {
-            .documentation-section {
-                padding: 40px 15px;
+            body {
+                font-size: 14px;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
             }
             
-            .documentation-title {
-                font-size: 2rem;
+            .container {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                gap: 0;
+                padding: 0;
+                overflow: hidden;
             }
             
-            .command-doc {
+            /* Hide original layout elements on mobile */
+            .container > .timeline-area:not(.page),
+            .container > .terminal-section:not(.page),
+            .container > .documentation-section:not(.page),
+            .container > .control-panel,
+            .container > .docs-toc:not(.page),
+            .documentation-section:not(.page-docs .documentation-section),
+            .docs-toc:not(.page-docs .docs-toc),
+            .documentation-container:not(.page-docs .documentation-container),
+            .bottom-nav {
+                display: none !important;
+            }
+            
+            /* Mobile-only message */
+            .mobile-message {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 40px 20px;
+                background: rgba(20, 30, 48, 0.9);
+                border-radius: 12px;
+                margin: 20px;
+                border: 1px solid rgba(100, 150, 255, 0.2);
+            }
+            
+            .mobile-message i {
+                font-size: 48px;
+                color: #4ecdc4;
+                margin-bottom: 20px;
+            }
+            
+            .mobile-message h3 {
+                color: #4ecdc4;
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+            
+            .mobile-message p {
+                color: #96ceb4;
+                font-size: 1rem;
+                line-height: 1.5;
+                margin-bottom: 10px;
+            }
+            
+            /* Mobile-only documentation content */
+            .mobile-docs-content {
+                display: block;
+                padding: 20px;
+                overflow-y: auto;
+                flex: 1;
+            }
+            
+            /* Show only docs page on mobile */
+            .page-docs {
+                display: flex !important;
+            }
+            
+            /* Hide all other pages */
+            .page:not(.page-docs) {
+                display: none !important;
+            }
+            
+            /* Page Navigation System - Mobile Only */
+            .page {
+                display: none;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
+                padding-bottom: 60px; /* Space for fixed navbar */
+            }
+            
+            .page.active {
+                display: flex;
+            }
+            
+            /* Instagram-style Top App Bar with Navigation */
+            .header {
+                padding: 15px 20px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(20, 30, 48, 0.95);
+                border-bottom: 1px solid rgba(100, 150, 255, 0.2);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+                text-align: center;
+                flex: 1;
+            }
+            
+            /* Bottom Navigation Bar - Mobile Only */
+            .bottom-nav {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                padding: 10px 0;
+                background: rgba(20, 30, 48, 0.95);
+                border-top: 1px solid rgba(100, 150, 255, 0.2);
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+            }
+            
+            .nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 8px 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border-radius: 8px;
+                color: #96ceb4;
+                font-size: 12px;
+            }
+            
+            .nav-item:hover {
+                background: rgba(78, 205, 196, 0.1);
+                color: #4ecdc4;
+            }
+            
+            .nav-item.active {
+                color: #4ecdc4;
+                background: rgba(78, 205, 196, 0.2);
+            }
+            
+            .nav-item i {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+            
+            /* Page 1: Timeline - Mobile Only */
+            .page-timeline .timeline-area {
+                display: flex;
+                flex-direction: column;
+                padding: 0;
+                gap: 0;
+                background: rgba(15, 25, 40, 0.8);
+                flex: 1;
+                overflow: hidden;
+            }
+            
+            .page-timeline .timeline-container {
+                height: calc(100vh - 140px);
+                margin: 0;
+                position: relative;
+                background: rgba(15, 25, 40, 0.3);
+                overflow-y: auto;
+            }
+            
+            .page-timeline .timeline-container svg {
+                height: auto;
+                min-height: calc(100vh - 140px);
+                width: 100% !important;
+            }
+            
+            /* Hide log container on mobile for cleaner feed */
+            .page-timeline .timeline-log-container {
+                display: none;
+            }
+            
+            /* Page 2: Terminal - Mobile Only */
+            .page-terminal {
+                flex-direction: column;
+            }
+            
+            .page-terminal .terminal-section {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                background: rgba(20, 30, 48, 0.9);
                 padding: 20px;
             }
             
-            .workflow-diagram {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .branch-diagram {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .remote-diagram {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .remote-arrows {
-                flex-direction: row;
-                gap: 20px;
-            }
-            
-            .log-entry {
-                grid-template-columns: 1fr;
-                gap: 5px;
-            }
-            
-            .reset-diagram {
+            .page-terminal .terminal-container {
+                flex: 1;
+                display: flex;
                 flex-direction: column;
             }
             
-            .merge-diagram {
-                gap: 15px;
+            .page-terminal .terminal-output {
+                height: calc(100vh - 200px);
+                font-size: 12px;
+                background: rgba(10, 20, 30, 0.8);
+                border-radius: 8px;
+                margin-bottom: 15px;
             }
+            
+            .page-terminal .command-input-container {
+                padding: 0;
+                background: transparent;
+                border: none;
+            }
+            
+            .page-terminal .command-input {
+                font-size: 14px;
+                padding: 12px 16px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(100, 150, 255, 0.2);
+            }
+            
+            /* Page 3: Commands - Mobile Only */
+            .page-commands {
+                flex-direction: column;
+            }
+            
+            .page-commands .command-doc {
+                padding: 20px;
+                margin: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                border: 1px solid rgba(100, 150, 255, 0.1);
+            }
+            
+            .page-commands .documentation-container {
+                overflow-y: auto;
+                flex: 1;
+                padding: 20px;
+            }
+            
+            /* Page 4: Log - Mobile Only */
+            .page-log {
+                flex-direction: column;
+            }
+            
+            .page-log .timeline-log-container {
+                flex: 1;
+                padding: 20px;
+                background: rgba(15, 25, 40, 0.8);
+                overflow-y: auto;
+            }
+            
+            /* Page 5: Documentation - Mobile Only */
+            .page-docs {
+                flex-direction: column;
+            }
+            
+            .page-docs .documentation-section {
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px;
+            }
+            
+            .page-docs .docs-toc {
+                display: none;
+            }
+            
+            /* Hide welcome message for cleaner mobile */
+            .welcome-message {
+                display: none;
+            }
+            
+            /* Mobile-specific animations */
+            .timeline-container {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Better touch targets */
+            .suggestion-item:hover {
+                padding: 8px 12px;
+            }
+            
+            /* Command suggestions for terminal page */
+            .command-suggestions {
+                font-size: 12px;
+                max-height: 120px;
+                position: absolute;
+                bottom: 60px;
+                left: 20px;
+                right: 20px;
+                background: rgba(20, 30, 48, 0.95);
+                border-radius: 8px;
+                border: 1px solid rgba(100, 150, 255, 0.2);
+            }
+            
+            .suggestion-item {
+                padding: 6px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 12px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .timeline-area {
+                padding: 0;
+                gap: 0;
+                height: 60vh;
+            }
+            
+            .timeline-container {
+                height: 60vh;
+                position: relative;
+            }
+            
+            .timeline-container svg {
+                height: auto;
+                min-height: 60vh;
+                width: 100% !important;
+            }
+            
+            .terminal-output {
+                height: 30vh;
+                font-size: 11px;
+            }
+            
+            .command-input {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+            
+            .commit-node {
+                width: 35px;
+                height: 35px;
+                font-size: 9px;
+            }
+            
+            .node-label {
+                font-size: 8px;
+            }
+            
+            /* Extra small mobile documentation styles */
+            .documentation-section {
+                padding: 30px 10px;
+            }
+            
+            .documentation-title {
+                font-size: 1.8rem;
+            }
+            
+            .command-doc {
+                padding: 15px;
+            }
+            
+            .command-syntax {
+                font-size: 12px;
+            }
+            
+            .command-examples code {
+                font-size: 11px;
+            }
+        }
+        
+        /* Tablet styles (between mobile and desktop) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 15px;
+                gap: 12px;
+            }
+            
+            .timeline-container {
+                height: 50vh;
+            }
+            
+            .timeline-log-container {
+                height: 40vh;
+            }
+        }
+        
+        /* Documentation Section Styles */
+        .documentation-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 60px 20px;
+            margin-top: 40px;
+            border-top: 2px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        .documentation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .documentation-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #4ecdc4;
+            margin-bottom: 40px;
         }
         
         /* Table of Contents Styles */
@@ -2221,6 +2585,519 @@
                 <input type="text" class="terminal-input" id="terminal-input" placeholder="Type command here..." autocomplete="off">
             </div>
             <div class="terminal-resize-handle"></div>
+        </div>
+    </div>
+
+    <!-- Mobile Documentation Only - Only visible on mobile devices -->
+    <div class="page page-docs" id="page-docs">
+        <!-- Mobile-only message -->
+        <div class="mobile-message">
+            <i class="fas fa-desktop"></i>
+            <h3>📱 Better Experience on Larger Screen</h3>
+            <p>For the best Git learning experience with interactive timeline and terminal, please use a tablet or desktop device.</p>
+            <p>This mobile version shows documentation content for quick reference.</p>
+        </div>
+        
+        <!-- Mobile-only documentation content -->
+        <div class="mobile-docs-content">
+            <h2 class="documentation-title">📚 Git Commands Reference</h2>
+            
+            <div class="docs-intro">
+                <p>Quick reference for essential Git commands. Each command includes syntax, common usage, and key points.</p>
+            </div>
+
+            <!-- 2 Mins Theory Section -->
+            <div class="command-doc" id="theory-basics">
+                <h3 class="command-title">⚡ 2 Mins Theory - Git Core Concepts</h3>
+                <p>Essential Git concepts every developer should know in under 2 minutes.</p>
+                
+                <div class="command-syntax">
+                    <strong>🏗️ Git Architecture - The Three Trees:</strong><br><br>
+                    <strong>Working Directory:</strong> Your actual files where you make changes<br>
+                    <strong>Staging Area:</strong> Temporary area to prepare commits<br>
+                    <strong>Repository:</strong> Permanent storage of commits (.git directory)<br><br>
+                    
+                    <strong>🎯 Key Concepts:</strong><br>
+                    • <strong>HEAD:</strong> Pointer to current branch/latest commit<br>
+                    • <strong>Branch:</strong> Movable pointer to a commit<br>
+                    • <strong>Commit:</strong> Snapshot of changes with metadata<br>
+                    • <strong>Merge:</strong> Combine branch histories<br>
+                    • <strong>Rebase:</strong> Replay commits on different base<br><br>
+                    
+                    <strong>💡 Pro Tip:</strong> Think of Git as a series of snapshots. Each commit is a complete picture, not just changes.
+                </div>
+            </div>
+
+            <!-- Staging Areas Section -->
+            <div class="command-doc" id="staging-areas">
+                <h3 class="command-title">📁 Storage Areas & File States</h3>
+                <p>Understanding where files live and their states in Git workflow.</p>
+                
+                <div class="command-syntax">
+                    <strong>🗂️ Git Storage Areas:</strong><br><br>
+                    <strong>1. Working Directory:</strong> Where you edit files<br>
+                    <strong>2. Staging Area (Index):</strong> Prepares next commit<br>
+                    <strong>3. Local Repository:</strong> .git directory with commits<br>
+                    <strong>4. Remote Repository:</strong> GitHub/GitLab server<br><br>
+                    
+                    <strong>📊 File States:</strong><br>
+                    • <strong>Untracked:</strong> New files, not in Git yet<br>
+                    • <strong>Unmodified:</strong> Committed files, unchanged<br>
+                    • <strong>Modified:</strong> Changed but not staged<br>
+                    • <strong>Staged:</strong> Ready for next commit<br><br>
+                    
+                    <strong>🔄 File Lifecycle:</strong><br>
+                    <code>Untracked → Staged → Committed → Modified → Staged</code><br><br>
+                    
+                    <strong>📋 Status Codes:</strong><br>
+                    • <strong>??</strong> Untracked files<br>
+                    • <strong>A</strong> Added to staging area<br>
+                    • <strong>M</strong> Modified files<br>
+                    • <strong>D</strong> Deleted files<br>
+                    • <strong>C</strong> Copied files<br>
+                    • <strong>R</strong> Renamed files<br><br>
+                    
+                    <strong>💡 Quick Workflow:</strong><br>
+                    <code>git add .</code> → Stage all changes<br>
+                    <code>git commit -m "message"</code> → Save snapshot<br>
+                    <code>git status</code> → Check file states
+                </div>
+            </div>
+
+            <!-- Git Init -->
+            <div class="command-doc" id="git-init">
+                <h3 class="command-title">git init</h3>
+                <p>Initialize a new Git repository in the current directory.</p>
+                
+                <div class="command-syntax">
+                    <code>git init [directory-name]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git init</code> - Initialize in current directory<br>
+                    <code>git init my-project</code> - Initialize in new directory<br>
+                    <code>git init --bare</code> - Initialize bare repository
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Creates hidden <code>.git</code> directory</li>
+                        <li>Sets up default <code>main</code> branch</li>
+                        <li>Required first step for any Git project</li>
+                        <li>Can be done once per directory</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Add -->
+            <div class="command-doc" id="git-add">
+                <h3 class="command-title">git add</h3>
+                <p>Add files to the staging area for the next commit.</p>
+                
+                <div class="command-syntax">
+                    <code>git add &lt;file-pattern&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git add file.txt</code> - Add specific file<br>
+                    <code>git add *.js</code> - Add all JavaScript files<br>
+                    <code>git add .</code> - Add all files in current directory<br>
+                    <code>git add -A</code> - Add all files including deletions
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Stages files for commit</li>
+                        <li>Doesn't affect repository yet</li>
+                        <li>Can be undone with <code>git reset</code></li>
+                        <li>Use <code>.</code> for all files</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Commit -->
+            <div class="command-doc" id="git-commit">
+                <h3 class="command-title">git commit</h3>
+                <p>Save staged changes with a descriptive message.</p>
+                
+                <div class="command-syntax">
+                    <code>git commit -m "&lt;message&gt;"</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git commit -m "Add user authentication"</code><br>
+                    <code>git commit --amend</code> - Modify last commit<br>
+                    <code>git commit -a -m "Fix bug"</code> - Stage and commit
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Creates permanent snapshot</li>
+                        <li>Requires commit message</li>
+                        <li>Generates unique hash ID</li>
+                        <li>Can be amended before pushing</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Status -->
+            <div class="command-doc" id="git-status">
+                <h3 class="command-title">git status</h3>
+                <p>Show the working tree status and staged changes.</p>
+                
+                <div class="command-syntax">
+                    <code>git status [options]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git status</code> - Detailed status<br>
+                    <code>git status -s</code> - Short format<br>
+                    <code>git status --porcelain</code> - Script-friendly
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Shows file states (modified, staged, untracked)</li>
+                        <li>Displays current branch</li>
+                        <li>Indicates if ahead/behind remote</li>
+                        <li>Essential command for workflow awareness</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Branch -->
+            <div class="command-doc" id="git-branch">
+                <h3 class="command-title">git branch</h3>
+                <p>List, create, or delete branches.</p>
+                
+                <div class="command-syntax">
+                    <code>git branch [branch-name]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git branch</code> - List branches<br>
+                    <code>git branch feature-x</code> - Create branch<br>
+                    <code>git branch -d feature-x</code> - Delete branch<br>
+                    <code>git branch -a</code> - List all branches
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Branches are pointers to commits</li>
+                        <li>Asterisk (*) indicates current branch</li>
+                        <li>Deleted branches can be restored</li>
+                        <li>Use descriptive branch names</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Switch -->
+            <div class="command-doc" id="git-switch">
+                <h3 class="command-title">git switch</h3>
+                <p>Switch between branches.</p>
+                
+                <div class="command-syntax">
+                    <code>git switch &lt;branch-name&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git switch main</code> - Switch to main<br>
+                    <code>git switch -c new-feature</code> - Create and switch<br>
+                    <code>git switch -</code> - Switch to previous branch
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Modern alternative to <code>git checkout</code></li>
+                        <li>Updates working directory</li>
+                        <li>Can create new branches with <code>-c</code></li>
+                        <li>Clean working directory required</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Merge -->
+            <div class="command-doc" id="git-merge">
+                <h3 class="command-title">git merge</h3>
+                <p>Combine changes from different branches.</p>
+                
+                <div class="command-syntax">
+                    <code>git merge &lt;branch-name&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git merge feature-x</code> - Merge feature branch<br>
+                    <code>git merge --no-ff feature-x</code> - No fast-forward<br>
+                    <code>git merge --abort</code> - Cancel merge
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Combines branch histories</li>
+                        <li>Creates merge commit by default</li>
+                        <li>Can cause conflicts</li>
+                        <li>Fast-forward if possible</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Log -->
+            <div class="command-doc" id="git-log">
+                <h3 class="command-title">git log</h3>
+                <p>Show commit history.</p>
+                
+                <div class="command-syntax">
+                    <code>git log [options]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git log</code> - Full history<br>
+                    <code>git log --oneline</code> - Compact format<br>
+                    <code>git log --graph</code> - Show branch structure<br>
+                    <code>git log -5</code> - Last 5 commits
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Shows commit hash, author, date, message</li>
+                        <li>Can be filtered and formatted</li>
+                        <li>Useful for tracking changes</li>
+                        <li>Pagination with space/q keys</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Remote -->
+            <div class="command-doc" id="git-remote">
+                <h3 class="command-title">git remote</h3>
+                <p>Manage remote repository connections.</p>
+                
+                <div class="command-syntax">
+                    <code>git remote [command] [name] [url]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git remote -v</code> - List remotes<br>
+                    <code>git remote add origin url</code> - Add remote<br>
+                    <code>git remote remove origin</code> - Remove remote
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Origin is default remote name</li>
+                        <li>Stores URLs for push/pull</li>
+                        <li>Can have multiple remotes</li>
+                        <li>Essential for collaboration</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Pull -->
+            <div class="command-doc" id="git-pull">
+                <h3 class="command-title">git pull</h3>
+                <p>Fetch and merge changes from remote repository.</p>
+                
+                <div class="command-syntax">
+                    <code>git pull [remote] [branch]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git pull origin main</code> - Pull from main<br>
+                    <code>git pull --rebase</code> - Rebase instead of merge<br>
+                    <code>git pull</code> - Pull from configured remote
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Combines fetch + merge</li>
+                        <li>Updates local repository</li>
+                        <li>Can cause merge conflicts</li>
+                        <li>Use rebase for cleaner history</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Push -->
+            <div class="command-doc" id="git-push">
+                <h3 class="command-title">git push</h3>
+                <p>Upload local commits to remote repository.</p>
+                
+                <div class="command-syntax">
+                    <code>git push [remote] [branch]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git push origin main</code> - Push to main<br>
+                    <code>git push -u origin feature-x</code> - Set upstream<br>
+                    <code>git push --force</code> - Force push (use carefully)
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Shares changes with others</li>
+                        <li>Requires write permissions</li>
+                        <li>First push needs upstream</li>
+                        <li>Force push rewrites history</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Config -->
+            <div class="command-doc" id="git-config">
+                <h3 class="command-title">git config</h3>
+                <p>Configure Git settings and preferences.</p>
+                
+                <div class="command-syntax">
+                    <code>git config [option] [value]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git config --global user.name "Your Name"</code><br>
+                    <code>git config --global user.email "email@example.com"</code><br>
+                    <code>git config --list</code> - Show all settings
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Required for commits (name/email)</li>
+                        <li>Global affects all repositories</li>
+                        <li>Local overrides global settings</li>
+                        <li>Stores in .gitconfig file</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Reset -->
+            <div class="command-doc" id="git-reset">
+                <h3 class="command-title">git reset</h3>
+                <p>Reset current HEAD to specified state.</p>
+                
+                <div class="command-syntax">
+                    <code>git reset [mode] [commit]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git reset HEAD~1</code> - Reset to previous commit<br>
+                    <code>git reset --soft HEAD~1</code> - Keep changes staged<br>
+                    <code>git reset --hard HEAD~1</code> - Discard changes
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Soft: keeps changes staged</li>
+                        <li>Mixed: keeps changes unstaged</li>
+                        <li>Hard: discards all changes</li>
+                        <li>Dangerous if pushed commits</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Clone -->
+            <div class="command-doc" id="git-clone">
+                <h3 class="command-title">git clone</h3>
+                <p>Create copy of remote repository.</p>
+                
+                <div class="command-syntax">
+                    <code>git clone &lt;url&gt; [directory]</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git clone https://github.com/user/repo.git</code><br>
+                    <code>git clone git@github.com:user/repo.git</code><br>
+                    <code>git clone --depth 1 url</code> - Shallow clone
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Downloads entire repository</li>
+                        <li>Sets up remote origin</li>
+                        <li>Creates working directory</li>
+                        <li>Can be shallow (latest only)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Revert -->
+            <div class="command-doc" id="git-revert">
+                <h3 class="command-title">git revert</h3>
+                <p>Create new commit that undoes previous changes.</p>
+                
+                <div class="command-syntax">
+                    <code>git revert &lt;commit&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git revert HEAD</code> - Revert last commit<br>
+                    <code>git revert HEAD~1</code> - Revert previous commit<br>
+                    <code>git revert abc123</code> - Revert specific commit
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>Safe way to undo changes</li>
+                        <li>Creates new commit</li>
+                        <li>Preserves history</li>
+                        <li>Opposite of reset</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Git Detach -->
+            <div class="command-doc" id="git-detach">
+                <h3 class="command-title">git detach</h3>
+                <p>Move to detached HEAD state (experimental).</p>
+                
+                <div class="command-syntax">
+                    <code>git checkout &lt;commit&gt;</code>
+                </div>
+                
+                <div class="command-examples">
+                    <h4>Examples:</h4>
+                    <code>git checkout abc123</code> - Detach to commit<br>
+                    <code>git checkout HEAD~2</code> - Go back 2 commits<br>
+                    <code>git checkout main</code> - Reattach to branch
+                </div>
+                
+                <div class="command-points">
+                    <h4>Key Points:</h4>
+                    <ul>
+                        <li>HEAD points directly to commit</li>
+                        <li>Not on any branch</li>
+                        <li>Changes can be lost easily</li>
+                        <li>Use for examining old commits</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -3424,6 +4301,36 @@ SAFETY NETS:
     <script src="git-command-processor-browser.js"></script>
     
     <script>
+        // Mobile page navigation function
+        function switchPage(pageName) {
+            // Only run on mobile devices
+            if (window.innerWidth > 768) return;
+            
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected page
+            const selectedPage = document.getElementById(`page-${pageName}`);
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+            }
+            
+            // Add active class to selected nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.onclick && item.onclick.toString().includes(pageName)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             // Create Git command processor
